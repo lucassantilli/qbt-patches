@@ -1,6 +1,6 @@
 name: CI - Windows
 
-on: [pull_request, push]
+on: [workflow_dispatch]
 
 permissions: {}
 
@@ -22,16 +22,6 @@ jobs:
           - version: "2.1.1"
             boost_major_version: "1"
             boost_minor_version: "91"
-            boost_patch_version: "0"
-            libt_build_flags: ""
-          - version: "2.0.14"
-            boost_major_version: "1"
-            boost_minor_version: "91"
-            boost_patch_version: "0"
-            libt_build_flags: ""
-          - version: "1.2.20"
-            boost_major_version: "1"
-            boost_minor_version: "86"
             boost_patch_version: "0"
             libt_build_flags: ""
         config:
