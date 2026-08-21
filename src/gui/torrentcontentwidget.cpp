@@ -85,7 +85,7 @@ namespace
                     if (index.isValid() && (index.column() == TorrentContentModelItem::COL_NAME))
                     {
                         const bool isFilterApplied = !m_filterModel->filterRegularExpression().pattern().isEmpty();
-                        
+
                         // Check if a filter is active and the clicked node is a folder (has children)
                         if (isFilterApplied && (m_filterModel->rowCount(index) > 0))
                         {
@@ -93,14 +93,14 @@ namespace
                             opt.initFrom(m_widget);
                             opt.rect = m_widget->visualRect(index);
                             opt.features |= QStyleOptionViewItem::HasCheckIndicator;
-                            
+
                             if (index.data(Qt::CheckStateRole).toInt() == Qt::Checked)
                                 opt.state |= QStyle::State_On;
                             else
                                 opt.state |= QStyle::State_Off;
 
                             const QRect checkRect = m_widget->style()->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &opt, m_widget);
-                            
+
                             if (checkRect.contains(mouseEvent->pos()))
                             {
                                 const QVariant value = index.data(Qt::CheckStateRole);
@@ -109,9 +109,9 @@ namespace
                                     const Qt::CheckState state = (static_cast<Qt::CheckState>(value.toInt()) == Qt::Checked)
                                                                  ? Qt::Unchecked : Qt::Checked;
                                     applyCheckState(m_widget->model(), index, state, isFilterApplied);
-                                    
+
                                     // Stop standard processing to prevent checking hidden children
-                                    return true; 
+                                    return true;
                                 }
                             }
                         }

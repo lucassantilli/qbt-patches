@@ -29,7 +29,6 @@
 #pragma once
 
 #include <QWidget>
-
 #include "base/logger.h"
 
 namespace Ui
@@ -53,6 +52,7 @@ public:
     void setMessageTypes(Log::MsgTypes types);
 
 private:
+    void updateMessageTypes();
     void displayContextMenu(const LogListView *view, const BaseLogModel *model) const;
 
     Ui::ExecutionLogWidget *m_ui = nullptr;

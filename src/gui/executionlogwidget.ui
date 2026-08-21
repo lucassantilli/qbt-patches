@@ -24,26 +24,96 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QTabWidget" name="tabConsole">
-     <property name="tabPosition">
-      <enum>QTabWidget::TabPosition::East</enum>
+    <widget class="QWidget" name="filterBarWidget" native="true">
+     <property name="maximumSize">
+      <size>
+       <width>16777215</width>
+       <height>50</height>
+      </size>
      </property>
-     <property name="currentIndex">
-      <number>0</number>
-     </property>
-     <widget class="QWidget" name="tabGeneral">
-      <attribute name="title">
-       <string>General</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="tabGeneralLayout"/>
-     </widget>
-     <widget class="QWidget" name="tabBan">
-      <attribute name="title">
-       <string>Blocked IPs</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="tabBanLayout"/>
-     </widget>
+     <layout class="QHBoxLayout" name="filterBarLayout">
+      <property name="leftMargin">
+       <number>6</number>
+      </property>
+      <property name="topMargin">
+       <number>6</number>
+      </property>
+      <property name="rightMargin">
+       <number>6</number>
+      </property>
+      <property name="bottomMargin">
+       <number>6</number>
+      </property>
+      <item>
+       <widget class="QPushButton" name="checkNormal">
+        <property name="text">
+         <string>Normal</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="checkWarning">
+        <property name="text">
+         <string>Warnings</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="checkCritical">
+        <property name="text">
+         <string>Critical</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="checkPeer">
+        <property name="text">
+         <string>Peers</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+            <width>40</width>
+            <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </widget>
+   </item>
+   <item>
+    <layout class="QVBoxLayout" name="logViewLayout"/>
    </item>
   </layout>
  </widget>

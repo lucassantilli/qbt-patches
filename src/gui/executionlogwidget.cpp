@@ -1,31 +1,3 @@
-/*
- * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2011  Christophe Dumez
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * In addition, as a special exception, the copyright holders give permission to
- * link this program with the OpenSSL project's "OpenSSL" library (or with
- * modified versions of it that use the same license as the "OpenSSL" library),
- * and distribute the linked executables. You must obey the GNU General Public
- * License in all respects for all of the code used other than "OpenSSL".  If you
- * modify file(s), you may extend this exception to your version of the file(s),
- * but you are not obligated to do so. If you do not wish to do so, delete this
- * exception statement from your version.
- */
-
 #include "executionlogwidget.h"
 
 #include <QDateTime>
@@ -46,32 +18,44 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
 {
     m_ui->setupUi(this);
 
+    // Initialize the source model for logs
     LogMessageModel *messageModel = new LogMessageModel(this);
     m_messageFilterModel->setSourceModel(messageModel);
+
     LogListView *messageView = new LogListView(this);
     messageView->setModel(m_messageFilterModel);
     messageView->setContextMenuPolicy(Qt::CustomContextMenu);
+    
     connect(messageView, &LogListView::customContextMenuRequested, this, [this, messageView, messageModel]()
     {
         displayContextMenu(messageView, messageModel);
     });
 
-    LogPeerModel *peerModel = new LogPeerModel(this);
-    LogListView *peerView = new LogListView(this);
-    peerView->setModel(peerModel);
-    peerView->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(peerView, &LogListView::customContextMenuRequested, this, [this, peerView, peerModel]()
-    {
-        displayContextMenu(peerView, peerModel);
-    });
+    // Embed the unified log view into the layout below the 50px filter bar
+    m_ui->logViewLayout->addWidget(messageView);
 
-    m_ui->tabGeneral->layout()->addWidget(messageView);
-    m_ui->tabBan->layout()->addWidget(peerView);
+    // Connect top filter buttons to dynamically update the bitmask filter model
+    auto updateFilterFromUI = [this]() {
+        Log::MsgTypes activeTypes = {};
+        if (m_ui->checkNormal->isChecked())
+            activeTypes |= Log::Normal;
+        if (m_ui->checkWarning->isChecked())
+            activeTypes |= Log::Warning;
+        if (m_ui->checkCritical->isChecked())
+            activeTypes |= Log::Critical;
+        if (m_ui->checkPeer->isChecked())
+            activeTypes |= Log::Peer;
 
-#ifndef Q_OS_MACOS
-    m_ui->tabConsole->setTabIcon(0, UIThemeManager::instance()->getIcon(u"help-contents"_s, u"view-calendar-journal"_s));
-    m_ui->tabConsole->setTabIcon(1, UIThemeManager::instance()->getIcon(u"ip-blocked"_s, u"view-filter"_s));
-#endif
+        m_messageFilterModel->setMessageTypes(activeTypes);
+    };
+
+    connect(m_ui->checkNormal, &QPushButton::toggled, this, updateFilterFromUI);
+    connect(m_ui->checkWarning, &QPushButton::toggled, this, updateFilterFromUI);
+    connect(m_ui->checkCritical, &QPushButton::toggled, this, updateFilterFromUI);
+    connect(m_ui->checkPeer, &QPushButton::toggled, this, updateFilterFromUI);
+
+    // Set initial filter state based on default button checks
+    updateFilterFromUI();
 }
 
 ExecutionLogWidget::~ExecutionLogWidget()
