@@ -1,32 +1,3 @@
-/*
- * Bittorrent Client using Qt and libtorrent.
- * Copyright (C) 2022-2026  Vladimir Golovnev <glassez@yandex.ru>
- * Copyright (C) 2014  Ivan Sorokin <vanyacpp@gmail.com>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * In addition, as a special exception, the copyright holders give permission to
- * link this program with the OpenSSL project's "OpenSSL" library (or with
- * modified versions of it that use the same license as the "OpenSSL" library),
- * and distribute the linked executables. You must obey the GNU General Public
- * License in all respects for all of the code used other than "OpenSSL".  If you
- * modify file(s), you may extend this exception to your version of the file(s),
- * but you are not obligated to do so. If you do not wish to do so, delete this
- * exception statement from your version.
- */
-
 #include "torrentcontentwidget.h"
 
 #include <QApplication>
@@ -70,6 +41,90 @@ namespace
 
         return persistentIndexes;
     }
+
+    void setCheckStateRecursively(QAbstractItemModel *model, const QModelIndex &parent, Qt::CheckState state)
+    {
+        const int rowCount = model->rowCount(parent);
+        if (rowCount == 0)
+        {
+            model->setData(parent, state, Qt::CheckStateRole);
+            return;
+        }
+
+        for (int i = 0; i < rowCount; ++i)
+        {
+            const QModelIndex index = model->index(i, TorrentContentModelItem::COL_NAME, parent);
+            setCheckStateRecursively(model, index, state);
+        }
+    }
+
+    void applyCheckState(QAbstractItemModel *model, const QModelIndex &index, Qt::CheckState state, bool isFilterApplied)
+    {
+        if (isFilterApplied)
+            setCheckStateRecursively(model, index, state);
+        else
+            model->setData(index, state, Qt::CheckStateRole);
+    }
+
+    class CheckboxEventFilter : public QObject
+    {
+    public:
+        CheckboxEventFilter(TorrentContentWidget *widget, TorrentContentFilterModel *filterModel)
+            : QObject(widget), m_widget(widget), m_filterModel(filterModel)
+        {
+        }
+
+        bool eventFilter(QObject *watched, QEvent *event) override
+        {
+            if (event->type() == QEvent::MouseButtonRelease)
+            {
+                auto *mouseEvent = static_cast<QMouseEvent *>(event);
+                if (mouseEvent->button() == Qt::LeftButton)
+                {
+                    const QModelIndex index = m_widget->indexAt(mouseEvent->pos());
+                    if (index.isValid() && (index.column() == TorrentContentModelItem::COL_NAME))
+                    {
+                        const bool isFilterApplied = !m_filterModel->filterRegularExpression().pattern().isEmpty();
+                        
+                        // Check if a filter is active and the clicked node is a folder (has children)
+                        if (isFilterApplied && (m_filterModel->rowCount(index) > 0))
+                        {
+                            QStyleOptionViewItem opt;
+                            opt.initFrom(m_widget);
+                            opt.rect = m_widget->visualRect(index);
+                            opt.features |= QStyleOptionViewItem::HasCheckIndicator;
+                            
+                            if (index.data(Qt::CheckStateRole).toInt() == Qt::Checked)
+                                opt.state |= QStyle::State_On;
+                            else
+                                opt.state |= QStyle::State_Off;
+
+                            const QRect checkRect = m_widget->style()->subElementRect(QStyle::SE_ItemViewItemCheckIndicator, &opt, m_widget);
+                            
+                            if (checkRect.contains(mouseEvent->pos()))
+                            {
+                                const QVariant value = index.data(Qt::CheckStateRole);
+                                if (value.isValid())
+                                {
+                                    const Qt::CheckState state = (static_cast<Qt::CheckState>(value.toInt()) == Qt::Checked)
+                                                                 ? Qt::Unchecked : Qt::Checked;
+                                    applyCheckState(m_widget->model(), index, state, isFilterApplied);
+                                    
+                                    // Stop standard processing to prevent checking hidden children
+                                    return true; 
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return QObject::eventFilter(watched, event);
+        }
+
+    private:
+        TorrentContentWidget *m_widget;
+        TorrentContentFilterModel *m_filterModel;
+    };
 }
 
 TorrentContentWidget::TorrentContentWidget(QWidget *parent)
@@ -97,6 +152,8 @@ TorrentContentWidget::TorrentContentWidget(QWidget *parent)
 
     auto *itemDelegate = new TorrentContentItemDelegate(this);
     setItemDelegate(itemDelegate);
+
+    viewport()->installEventFilter(new CheckboxEventFilter(this, m_filterModel));
 
     connect(this, &QAbstractItemView::clicked, this, qOverload<const QModelIndex &>(&QAbstractItemView::edit));
     connect(this, &QAbstractItemView::doubleClicked, this, &TorrentContentWidget::onItemDoubleClicked);
@@ -217,14 +274,16 @@ void TorrentContentWidget::setFilterPattern(const QString &patternText, const Fi
 
 void TorrentContentWidget::checkAll()
 {
+    const bool isFilterApplied = !m_filterModel->filterRegularExpression().pattern().isEmpty();
     for (int i = 0; i < model()->rowCount(); ++i)
-        model()->setData(model()->index(i, TorrentContentModelItem::COL_NAME), Qt::Checked, Qt::CheckStateRole);
+        applyCheckState(model(), model()->index(i, TorrentContentModelItem::COL_NAME), Qt::Checked, isFilterApplied);
 }
 
 void TorrentContentWidget::checkNone()
 {
+    const bool isFilterApplied = !m_filterModel->filterRegularExpression().pattern().isEmpty();
     for (int i = 0; i < model()->rowCount(); ++i)
-        model()->setData(model()->index(i, TorrentContentModelItem::COL_NAME), Qt::Unchecked, Qt::CheckStateRole);
+        applyCheckState(model(), model()->index(i, TorrentContentModelItem::COL_NAME), Qt::Unchecked, isFilterApplied);
 }
 
 void TorrentContentWidget::setContentDragAllowed(const bool allowed)
@@ -269,8 +328,9 @@ void TorrentContentWidget::keyPressEvent(QKeyEvent *event)
                                  ? Qt::Unchecked : Qt::Checked;
     const QList<QPersistentModelIndex> selection = toPersistentIndexes(selectionModel()->selectedRows(TorrentContentModelItem::COL_NAME));
 
+    const bool isFilterApplied = !m_filterModel->filterRegularExpression().pattern().isEmpty();
     for (const QPersistentModelIndex &index : selection)
-        model()->setData(index, state, Qt::CheckStateRole);
+        applyCheckState(model(), index, state, isFilterApplied);
 }
 
 void TorrentContentWidget::renameSelectedFile()
