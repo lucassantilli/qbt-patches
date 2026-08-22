@@ -1779,6 +1779,9 @@ void MainWindow::on_actionExecutionLogs_triggered(bool checked)
     {
         Q_ASSERT(!m_executionLog);
         m_executionLog = new ExecutionLogWidget(executionLogMsgTypes(), m_tabs);
+        connect(m_executionLog, &ExecutionLogWidget::messageTypesChanged, this, [this](const Log::MsgTypes types) {
+            setExecutionLogMsgTypes(types);
+        });
 #ifdef Q_OS_MACOS
         m_tabs->addTab(m_executionLog, tr("Execution Log"));
 #else

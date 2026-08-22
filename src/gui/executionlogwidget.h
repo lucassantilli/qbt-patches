@@ -51,6 +51,9 @@ public:
 
     void setMessageTypes(Log::MsgTypes types);
 
+signals:
+    void messageTypesChanged(Log::MsgTypes types);
+
 private:
     void displayContextMenu(const LogListView *view, const BaseLogModel *model) const;
 

@@ -77,6 +77,7 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
         }
 
         m_messageFilterModel->setMessageTypes(activeTypes);
+        emit messageTypesChanged(activeTypes);
     };
 
     // Setup press-and-hold timers for each button
@@ -94,7 +95,7 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
         });
 
         // Rule 1: Press and hold any filter button for 1 second disables all other filters
-        connect(holdTimer, &QTimer::timeout, this, [this, filterButtons, btn, &updatingFilters]() {
+        connect(holdTimer, &QTimer::timeout, this, [this, filterButtons, btn, &updatingFilters, &updateFilterFromUI]() {
             updatingFilters = true;
             for (QPushButton *otherBtn : filterButtons) {
                 otherBtn->setChecked(otherBtn == btn);
