@@ -5,7 +5,6 @@
 #include <QPalette>
 
 #include "base/global.h"
-#include "base/preferences.h" // Include preferences header if needed
 #include "log/logfiltermodel.h"
 #include "log/loglistview.h"
 #include "log/logmodel.h"
@@ -19,15 +18,13 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
 {
     m_ui->setupUi(this);
 
-    // Load initial settings for log types (fallback to passed 'types' or ALL if none saved)
-    Log::MsgTypes savedTypes = Preferences::instance()->executionLogMsgTypes();
-    
-    m_ui->checkNormal->setChecked(savedTypes.testFlag(Log::NORMAL));
-    m_ui->checkInfo->setChecked(savedTypes.testFlag(Log::INFO));
-    m_ui->checkWarning->setChecked(savedTypes.testFlag(Log::WARNING));
-    m_ui->checkCritical->setChecked(savedTypes.testFlag(Log::CRITICAL));
-    m_ui->checkRSS->setChecked(savedTypes.testFlag(Log::RSS));
-    m_ui->checkPeer->setChecked(savedTypes.testFlag(Log::PEER));
+    // Sync button check states using the incoming 'types' parameter
+    m_ui->checkNormal->setChecked(types.testFlag(Log::NORMAL));
+    m_ui->checkInfo->setChecked(types.testFlag(Log::INFO));
+    m_ui->checkWarning->setChecked(types.testFlag(Log::WARNING));
+    m_ui->checkCritical->setChecked(types.testFlag(Log::CRITICAL));
+    m_ui->checkRSS->setChecked(types.testFlag(Log::RSS));
+    m_ui->checkPeer->setChecked(types.testFlag(Log::PEER));
 
     LogMessageModel *messageModel = new LogMessageModel(this);
     m_messageFilterModel->setSourceModel(messageModel);
@@ -59,8 +56,6 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
             activeTypes |= Log::PEER;
 
         m_messageFilterModel->setMessageTypes(activeTypes);
-
-        Preferences::instance()->setExecutionLogMsgTypes(activeTypes);
     };
 
     connect(m_ui->checkNormal, &QPushButton::toggled, this, updateFilterFromUI);
@@ -69,8 +64,6 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
     connect(m_ui->checkCritical, &QPushButton::toggled, this, updateFilterFromUI);
     connect(m_ui->checkRSS, &QPushButton::toggled, this, updateFilterFromUI);
     connect(m_ui->checkPeer, &QPushButton::toggled, this, updateFilterFromUI);
-
-    updateFilterFromUI();
 }
 
 ExecutionLogWidget::~ExecutionLogWidget()
@@ -81,6 +74,14 @@ ExecutionLogWidget::~ExecutionLogWidget()
 void ExecutionLogWidget::setMessageTypes(const Log::MsgTypes types)
 {
     m_messageFilterModel->setMessageTypes(types);
+    
+    // Keep UI checkboxes in sync if changed externally (e.g. from MainWindow menu)
+    m_ui->checkNormal->setChecked(types.testFlag(Log::NORMAL));
+    m_ui->checkInfo->setChecked(types.testFlag(Log::INFO));
+    m_ui->checkWarning->setChecked(types.testFlag(Log::WARNING));
+    m_ui->checkCritical->setChecked(types.testFlag(Log::CRITICAL));
+    m_ui->checkRSS->setChecked(types.testFlag(Log::RSS));
+    m_ui->checkPeer->setChecked(types.testFlag(Log::PEER));
 }
 
 void ExecutionLogWidget::displayContextMenu(const LogListView *view, const BaseLogModel *model) const
