@@ -150,6 +150,20 @@ LogMessageModel::LogMessageModel(QObject *parent)
     for (const Log::Msg &msg : asConst(Logger::instance()->getMessages()))
         handleNewMessage(msg);
     connect(Logger::instance(), &Logger::newLogMessage, this, &LogMessageModel::handleNewMessage);
+
+    for (const Log::Peer &peer : asConst(Logger::instance()->getPeers()))
+        handleNewPeer(peer);
+    connect(Logger::instance(), &Logger::newLogPeer, this, &LogMessageModel::handleNewPeer);
+}
+
+void LogMessageModel::handleNewPeer(const Log::Peer &peer)
+{
+    const QString time = QLocale::system().toString(QDateTime::fromSecsSinceEpoch(peer.timestamp), QLocale::ShortFormat);
+    const QString message = peer.blocked
+            ? tr("%1 was blocked. Reason: %2.", "0.0.0.0 was blocked. Reason: reason for blocking.").arg(peer.ip, peer.reason)
+            : tr("%1 was banned", "0.0.0.0 was banned").arg(peer.ip);
+
+    addNewMessage({time, message, Log::PEER});
 }
 
 void LogMessageModel::handleNewMessage(const Log::Msg &message)
@@ -178,42 +192,8 @@ void LogMessageModel::loadColors()
         {Log::NORMAL, normalColor.isValid() ? normalColor : QApplication::palette().color(QPalette::Active, QPalette::WindowText)},
         {Log::INFO, themeManager->getColor(u"Log.Info"_s)},
         {Log::WARNING, themeManager->getColor(u"Log.Warning"_s)},
-        {Log::CRITICAL, themeManager->getColor(u"Log.Critical"_s)}
+        {Log::CRITICAL, themeManager->getColor(u"Log.Critical"_s)},
+        {Log::RSS, themeManager->getColor(u"Log.Info"_s)},
+        {Log::PEER, themeManager->getColor(u"Log.BannedPeer"_s)},
     };
-}
-
-LogPeerModel::LogPeerModel(QObject *parent)
-    : BaseLogModel(parent)
-{
-    loadColors();
-
-    for (const Log::Peer &peer : asConst(Logger::instance()->getPeers()))
-        handleNewMessage(peer);
-    connect(Logger::instance(), &Logger::newLogPeer, this, &LogPeerModel::handleNewMessage);
-}
-
-void LogPeerModel::handleNewMessage(const Log::Peer &peer)
-{
-    const QString time = QLocale::system().toString(QDateTime::fromSecsSinceEpoch(peer.timestamp), QLocale::ShortFormat);
-    const QString message = peer.blocked
-            ? tr("%1 was blocked. Reason: %2.", "0.0.0.0 was blocked. Reason: reason for blocking.").arg(peer.ip, peer.reason)
-            : tr("%1 was banned", "0.0.0.0 was banned").arg(peer.ip);
-
-    addNewMessage({time, message, Log::NORMAL});
-}
-
-QColor LogPeerModel::messageForeground([[maybe_unused]] const Message &message) const
-{
-    return m_bannedPeerForeground;
-}
-
-void LogPeerModel::onUIThemeChanged()
-{
-    loadColors();
-    BaseLogModel::onUIThemeChanged();
-}
-
-void LogPeerModel::loadColors()
-{
-    m_bannedPeerForeground = UIThemeManager::instance()->getColor(u"Log.BannedPeer"_s);
 }

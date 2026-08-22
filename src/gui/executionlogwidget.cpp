@@ -43,6 +43,8 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
             activeTypes |= Log::WARNING;
         if (m_ui->checkCritical->isChecked())
             activeTypes |= Log::CRITICAL;
+        if (m_ui->checkRSS->isChecked())
+            activeTypes |= Log::RSS;
 
         m_messageFilterModel->setMessageTypes(activeTypes);
     };
@@ -51,6 +53,7 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
     connect(m_ui->checkInfo, &QPushButton::toggled, this, updateFilterFromUI);
     connect(m_ui->checkWarning, &QPushButton::toggled, this, updateFilterFromUI);
     connect(m_ui->checkCritical, &QPushButton::toggled, this, updateFilterFromUI);
+    connect(m_ui->checkRSS, &QPushButton::toggled, this, updateFilterFromUI);
     connect(m_ui->checkPeer, &QPushButton::toggled, this, updateFilterFromUI);
 
     // Set initial filter state based on default button checks

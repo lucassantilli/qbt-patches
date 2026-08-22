@@ -232,7 +232,7 @@ void Feed::handleDownloadFinished(const Net::DownloadResult &result)
     if (result.status == Net::DownloadStatus::Success)
     {
         LogMsg(tr("RSS feed at '%1' is successfully downloaded. Starting to parse it.")
-                .arg(result.url));
+                .arg(result.url), Log::RSS);
         // Parse the download RSS
         QMetaObject::invokeMethod(m_parser, [this, data = result.data]()
         {
@@ -281,7 +281,7 @@ void Feed::handleParsingFinished(const RSS::Private::ParsingResult &result)
                , Log::WARNING);
     }
     LogMsg(tr("RSS feed at '%1' updated. Added %2 new articles.")
-           .arg(url(), QString::number(newArticlesCount)));
+           .arg(url(), QString::number(newArticlesCount)), Log::RSS);
 
     m_isLoading = false;
     emit stateChanged(this);

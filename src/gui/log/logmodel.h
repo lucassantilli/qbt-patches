@@ -96,6 +96,7 @@ public:
 
 private slots:
     void handleNewMessage(const Log::Msg &message);
+    void handleNewPeer(const Log::Peer &peer);
 
 private:
     QColor messageForeground(const Message &message) const override;
@@ -103,23 +104,4 @@ private:
     void loadColors();
 
     QHash<int, QColor> m_foregroundForMessageTypes;
-};
-
-class LogPeerModel : public BaseLogModel
-{
-    Q_OBJECT
-    Q_DISABLE_COPY_MOVE(LogPeerModel)
-
-public:
-    explicit LogPeerModel(QObject *parent = nullptr);
-
-private slots:
-    void handleNewMessage(const Log::Peer &peer);
-
-private:
-    QColor messageForeground(const Message &message) const override;
-    void onUIThemeChanged() override;
-    void loadColors();
-
-    QColor m_bannedPeerForeground;
 };

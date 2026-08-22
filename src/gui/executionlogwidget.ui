@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>417</width>
     <height>300</height>
    </rect>
   </property>
@@ -60,7 +60,7 @@
       <item>
        <widget class="QPushButton" name="checkInfo">
         <property name="text">
-         <string>Normal</string>
+         <string>Info</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -73,7 +73,7 @@
       <item>
        <widget class="QPushButton" name="checkWarning">
         <property name="text">
-         <string>Warnings</string>
+         <string>Warning</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -87,6 +87,19 @@
        <widget class="QPushButton" name="checkCritical">
         <property name="text">
          <string>Critical</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="checkPeer">
+        <property name="text">
+         <string>RSS</string>
         </property>
         <property name="checkable">
          <bool>true</bool>

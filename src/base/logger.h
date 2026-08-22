@@ -45,7 +45,9 @@ namespace Log
         NORMAL = 0x1,
         INFO = 0x2,
         WARNING = 0x4,
-        CRITICAL = 0x8 // ERROR is defined by libtorrent and results in compiler error
+        CRITICAL = 0x8,
+        RSS = 0x10,
+        PEER = 0x20
     };
     Q_DECLARE_FLAGS(MsgTypes, MsgType)
 
