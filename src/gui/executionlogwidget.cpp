@@ -37,7 +37,7 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
         Log::MsgTypes activeTypes = {};
         if (m_ui->checkNormal->isChecked())
             activeTypes |= Log::NORMAL;
-        if (m_ui->checkWarning->isChecked())
+        if (m_ui->checkInfo->isChecked())
             activeTypes |= Log::INFO;
         if (m_ui->checkWarning->isChecked())
             activeTypes |= Log::WARNING;
