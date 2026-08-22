@@ -3,6 +3,7 @@
 #include <QDateTime>
 #include <QMenu>
 #include <QPalette>
+#include <QTimer>
 
 #include "base/global.h"
 #include "log/logfiltermodel.h"
@@ -40,7 +41,16 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
 
     m_ui->logViewLayout->addWidget(messageView);
 
-    auto updateFilterFromUI = [this]() {
+    QList<QPushButton*> filterButtons = {
+        m_ui->checkNormal, m_ui->checkInfo, m_ui->checkWarning,
+        m_ui->checkCritical, m_ui->checkRSS, m_ui->checkPeer
+    };
+
+    bool updatingFilters = false;
+
+    auto updateFilterFromUI = [this, filterButtons, &updatingFilters]() {
+        if (updatingFilters) return;
+
         Log::MsgTypes activeTypes = {};
         if (m_ui->checkNormal->isChecked())
             activeTypes |= Log::NORMAL;
@@ -55,15 +65,47 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
         if (m_ui->checkPeer->isChecked())
             activeTypes |= Log::PEER;
 
+        // Rule 2: Disabling all filters automatically enables all filters
+        if (activeTypes == 0) {
+            updatingFilters = true;
+            for (QPushButton *btn : filterButtons) {
+                btn->setChecked(true);
+            }
+            updatingFilters = false;
+            
+            activeTypes = Log::NORMAL | Log::INFO | Log::WARNING | Log::CRITICAL | Log::RSS | Log::PEER;
+        }
+
         m_messageFilterModel->setMessageTypes(activeTypes);
     };
 
-    connect(m_ui->checkNormal, &QPushButton::toggled, this, updateFilterFromUI);
-    connect(m_ui->checkInfo, &QPushButton::toggled, this, updateFilterFromUI);
-    connect(m_ui->checkWarning, &QPushButton::toggled, this, updateFilterFromUI);
-    connect(m_ui->checkCritical, &QPushButton::toggled, this, updateFilterFromUI);
-    connect(m_ui->checkRSS, &QPushButton::toggled, this, updateFilterFromUI);
-    connect(m_ui->checkPeer, &QPushButton::toggled, this, updateFilterFromUI);
+    // Setup press-and-hold timers for each button
+    for (QPushButton *btn : filterButtons) {
+        QTimer *holdTimer = new QTimer(this);
+        holdTimer->setSingleShot(true);
+        holdTimer->setInterval(1000); // 1 second
+
+        connect(btn, &QPushButton::pressed, this, [holdTimer]() {
+            holdTimer->start();
+        });
+
+        connect(btn, &QPushButton::released, this, [holdTimer]() {
+            holdTimer->stop();
+        });
+
+        // Rule 1: Press and hold any filter button for 1 second disables all other filters
+        connect(holdTimer, &QTimer::timeout, this, [this, filterButtons, btn, &updatingFilters]() {
+            updatingFilters = true;
+            for (QPushButton *otherBtn : filterButtons) {
+                otherBtn->setChecked(otherBtn == btn);
+            }
+            updatingFilters = false;
+
+            updateFilterFromUI();
+        });
+
+        connect(btn, &QPushButton::toggled, this, updateFilterFromUI);
+    }
 }
 
 ExecutionLogWidget::~ExecutionLogWidget()
