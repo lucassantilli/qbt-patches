@@ -25,31 +25,30 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
     LogListView *messageView = new LogListView(this);
     messageView->setModel(m_messageFilterModel);
     messageView->setContextMenuPolicy(Qt::CustomContextMenu);
-    
+
     connect(messageView, &LogListView::customContextMenuRequested, this, [this, messageView, messageModel]()
     {
         displayContextMenu(messageView, messageModel);
     });
 
-    // Embed the unified log view into the layout below the 50px filter bar
     m_ui->logViewLayout->addWidget(messageView);
 
-    // Connect top filter buttons to dynamically update the bitmask filter model
     auto updateFilterFromUI = [this]() {
         Log::MsgTypes activeTypes = {};
         if (m_ui->checkNormal->isChecked())
-            activeTypes |= Log::Normal;
+            activeTypes |= Log::NORMAL;
         if (m_ui->checkWarning->isChecked())
-            activeTypes |= Log::Warning;
+            activeTypes |= Log::INFO;
+        if (m_ui->checkWarning->isChecked())
+            activeTypes |= Log::WARNING;
         if (m_ui->checkCritical->isChecked())
-            activeTypes |= Log::Critical;
-        if (m_ui->checkPeer->isChecked())
-            activeTypes |= Log::Peer;
+            activeTypes |= Log::CRITICAL;
 
         m_messageFilterModel->setMessageTypes(activeTypes);
     };
 
     connect(m_ui->checkNormal, &QPushButton::toggled, this, updateFilterFromUI);
+    connect(m_ui->checkInfo, &QPushButton::toggled, this, updateFilterFromUI);
     connect(m_ui->checkWarning, &QPushButton::toggled, this, updateFilterFromUI);
     connect(m_ui->checkCritical, &QPushButton::toggled, this, updateFilterFromUI);
     connect(m_ui->checkPeer, &QPushButton::toggled, this, updateFilterFromUI);
