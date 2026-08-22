@@ -401,6 +401,8 @@ MainWindow::MainWindow(IGUIApplication *app, const WindowState initialState, con
     m_ui->actionInformationMessages->setChecked(flags.testFlag(Log::INFO));
     m_ui->actionWarningMessages->setChecked(flags.testFlag(Log::WARNING));
     m_ui->actionCriticalMessages->setChecked(flags.testFlag(Log::CRITICAL));
+    m_ui->actionRSSMessages->setChecked(flags.testFlag(Log::RSS));
+    m_ui->actionPeerMessages->setChecked(flags.testFlag(Log::PEER));
 
     displayRSSTab(m_ui->actionRSSReader->isChecked());
     on_actionExecutionLogs_triggered(m_ui->actionExecutionLogs->isChecked());
@@ -408,6 +410,8 @@ MainWindow::MainWindow(IGUIApplication *app, const WindowState initialState, con
     on_actionInformationMessages_triggered(m_ui->actionInformationMessages->isChecked());
     on_actionWarningMessages_triggered(m_ui->actionWarningMessages->isChecked());
     on_actionCriticalMessages_triggered(m_ui->actionCriticalMessages->isChecked());
+    on_actionRSSMessages_triggered(m_ui->actionRSSMessages->isChecked());
+    on_actionPeerMessages_triggered(m_ui->actionPeerMessages->isChecked());
     if (m_ui->actionSearchWidget->isChecked())
         QMetaObject::invokeMethod(this, &MainWindow::on_actionSearchWidget_triggered, Qt::QueuedConnection);
     // Auto shutdown actions
@@ -1791,6 +1795,8 @@ void MainWindow::on_actionExecutionLogs_triggered(bool checked)
     m_ui->actionInformationMessages->setEnabled(checked);
     m_ui->actionWarningMessages->setEnabled(checked);
     m_ui->actionCriticalMessages->setEnabled(checked);
+    m_ui->actionRSSMessages->setEnabled(checked);
+    m_ui->actionPeerMessages->setEnabled(checked);
     setExecutionLogEnabled(checked);
 }
 
@@ -1827,6 +1833,24 @@ void MainWindow::on_actionCriticalMessages_triggered(const bool checked)
         return;
 
     const Log::MsgTypes flags = executionLogMsgTypes().setFlag(Log::CRITICAL, checked);
+    setExecutionLogMsgTypes(flags);
+}
+
+void MainWindow::on_actionRSSMessages_triggered(const bool checked)
+{
+    if (!m_executionLog)
+        return;
+
+    const Log::MsgTypes flags = executionLogMsgTypes().setFlag(Log::RSS, checked);
+    setExecutionLogMsgTypes(flags);
+}
+
+void MainWindow::on_actionPeerMessages_triggered(const bool checked)
+{
+    if (!m_executionLog)
+        return;
+
+    const Log::MsgTypes flags = executionLogMsgTypes().setFlag(Log::PEER, checked);
     setExecutionLogMsgTypes(flags);
 }
 
