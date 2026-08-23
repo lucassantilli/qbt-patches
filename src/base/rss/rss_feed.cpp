@@ -231,9 +231,6 @@ void Feed::handleDownloadFinished(const Net::DownloadResult &result)
 
     if (result.status == Net::DownloadStatus::Success)
     {
-        LogMsg(tr("RSS feed at '%1' is successfully downloaded. Starting to parse it.")
-                .arg(result.url), Log::RSS);
-        // Parse the download RSS
         QMetaObject::invokeMethod(m_parser, [this, data = result.data]()
         {
             m_parser->parse(data);

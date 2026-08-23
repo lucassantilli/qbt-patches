@@ -193,7 +193,7 @@ void LogMessageModel::loadColors()
         {Log::INFO, themeManager->getColor(u"Log.Info"_s)},
         {Log::WARNING, themeManager->getColor(u"Log.Warning"_s)},
         {Log::CRITICAL, themeManager->getColor(u"Log.Critical"_s)},
-        {Log::RSS, themeManager->getColor(u"Log.Info"_s)},
+        {Log::RSS, themeManager->getColor(u"Log.RSS"_s)},
         {Log::PEER, themeManager->getColor(u"Log.BannedPeer"_s)},
     };
 }

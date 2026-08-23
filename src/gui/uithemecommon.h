@@ -58,6 +58,7 @@ inline QHash<QString, UIThemeColor> defaultUIThemeColors()
         {u"Log.Info"_s, {Color::Primer::Light::accentFg, Color::Primer::Dark::accentFg}},
         {u"Log.Warning"_s, {Color::Primer::Light::severeFg, Color::Primer::Dark::severeFg}},
         {u"Log.Critical"_s, {Color::Primer::Light::dangerFg, Color::Primer::Dark::dangerFg}},
+        {u"Log.RSS"_s, {Color::Primer::Light::successFg, Color::Primer::Dark::successFg}},
         {u"Log.BannedPeer"_s, {Color::Primer::Light::dangerFg, Color::Primer::Dark::dangerFg}},
 
         {u"RSS.ReadArticle"_s, {{}, {}}},
