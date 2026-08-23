@@ -46,10 +46,11 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
         m_ui->checkCritical, m_ui->checkRSS, m_ui->checkPeer
     };
 
-    bool updatingFilters = false;
+    // Use a shared heap-allocated flag so it survives beyond the constructor's stack frame
+    auto updatingFilters = std::make_shared<bool>(false);
 
-    auto updateFilterFromUI = [this, filterButtons, &updatingFilters]() {
-        if (updatingFilters) return;
+    auto updateFilterFromUI = [this, filterButtons, updatingFilters]() {
+        if (*updatingFilters) return;
 
         Log::MsgTypes activeTypes = {};
         if (m_ui->checkNormal->isChecked())
@@ -67,11 +68,11 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
 
         // Rule 2: Disabling all filters automatically enables all filters
         if (activeTypes == 0) {
-            updatingFilters = true;
+            *updatingFilters = true;
             for (QPushButton *btn : filterButtons) {
                 btn->setChecked(true);
             }
-            updatingFilters = false;
+            *updatingFilters = false;
             
             activeTypes = Log::NORMAL | Log::INFO | Log::WARNING | Log::CRITICAL | Log::RSS | Log::PEER;
         }
@@ -86,21 +87,16 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
         holdTimer->setSingleShot(true);
         holdTimer->setInterval(1000); // 1 second
 
-        connect(btn, &QPushButton::pressed, this, [holdTimer]() {
-            holdTimer->start();
-        });
-
-        connect(btn, &QPushButton::released, this, [holdTimer]() {
-            holdTimer->stop();
-        });
+        connect(btn, &QPushButton::pressed, holdTimer, qOverload<>(&QTimer::start));
+        connect(btn, &QPushButton::released, holdTimer, &QTimer::stop);
 
         // Rule 1: Press and hold any filter button for 1 second disables all other filters
-        connect(holdTimer, &QTimer::timeout, this, [this, filterButtons, btn, &updatingFilters, &updateFilterFromUI]() {
-            updatingFilters = true;
+        connect(holdTimer, &QTimer::timeout, this, [this, filterButtons, btn, updatingFilters, updateFilterFromUI]() {
+            *updatingFilters = true;
             for (QPushButton *otherBtn : filterButtons) {
                 otherBtn->setChecked(otherBtn == btn);
             }
-            updatingFilters = false;
+            *updatingFilters = false;
 
             updateFilterFromUI();
         });
