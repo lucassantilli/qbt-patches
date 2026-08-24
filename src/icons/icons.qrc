@@ -4,6 +4,16 @@
         <file>application-rss.svg</file>
         <file>application-url.svg</file>
         <file>browser-cookies.svg</file>
+        <file>btn-add.svg</file>
+        <file>btn-download.svg</file>
+        <file>btn-folder.svg</file>
+        <file>btn-help.svg</file>
+        <file>btn-peers.svg</file>
+        <file>btn-refresh.svg</file>
+        <file>btn-resources.svg</file>
+        <file>btn-statistics.svg</file>
+        <file>btn-taskcompleted.svg</file>
+        <file>btn-trackers.svg</file>
         <file>chart-line.svg</file>
         <file>checked-completed.svg</file>
         <file>configure.svg</file>
@@ -298,6 +308,13 @@
         <file>folder-new.svg</file>
         <file>folder-remote.svg</file>
         <file>force-recheck.svg</file>
+        <file>ftab-checked-completed.svg</file>
+        <file>ftab-download.svg</file>
+        <file>ftab-error.svg</file>
+        <file>ftab-force-recheck.svg</file>
+        <file>ftab-moving.svg</file>
+        <file>ftab-queued.svg</file>
+        <file>ftab-upload.svg</file>
         <file>go-bottom.svg</file>
         <file>go-down.svg</file>
         <file>go-top.svg</file>

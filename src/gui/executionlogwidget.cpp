@@ -73,7 +73,7 @@ ExecutionLogWidget::ExecutionLogWidget(const Log::MsgTypes types, QWidget *paren
                 btn->setChecked(true);
             }
             *updatingFilters = false;
-            
+
             activeTypes = Log::NORMAL | Log::INFO | Log::WARNING | Log::CRITICAL | Log::RSS | Log::PEER;
         }
 
@@ -113,7 +113,7 @@ ExecutionLogWidget::~ExecutionLogWidget()
 void ExecutionLogWidget::setMessageTypes(const Log::MsgTypes types)
 {
     m_messageFilterModel->setMessageTypes(types);
-    
+
     // Keep UI checkboxes in sync if changed externally (e.g. from MainWindow menu)
     m_ui->checkNormal->setChecked(types.testFlag(Log::NORMAL));
     m_ui->checkInfo->setChecked(types.testFlag(Log::INFO));

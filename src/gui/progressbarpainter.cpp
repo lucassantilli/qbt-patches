@@ -56,17 +56,36 @@ ProgressBarPainter::ProgressBarPainter(QObject *parent)
 
 void ProgressBarPainter::paint(QPainter *painter, const QStyleOptionViewItem &option, const QString &text, const int progress, const QColor &color) const
 {
+    // Prepare the text bounding rect on the right
+    const QFontMetrics fontMetrics = option.fontMetrics;
+    const int textMargin = 6;
+    const int textWidth = fontMetrics.horizontalAdvance(text);
+
+    // Calculate layout geometries
+    QRect cellRect = option.rect;
+    QRect textRect = cellRect;
+    textRect.setLeft(cellRect.right() - textWidth);
+
+    QRect barRect = cellRect;
+    barRect.setRight(textRect.left() - textMargin);
+
+    // Clamp the progress bar height to 8px and center it vertically
+    const int maxHeight = 8;
+    if (barRect.height() > maxHeight)
+    {
+        const int topMargin = (barRect.height() - maxHeight) / 2;
+        barRect.setTop(barRect.top() + topMargin);
+        barRect.setHeight(maxHeight);
+    }
+
+    // Configure progress bar style option
     QStyleOptionProgressBar styleOption;
     styleOption.initFrom(&m_dummyProgressBar);
-    // QStyleOptionProgressBar fields
     styleOption.maximum = 100;
     styleOption.minimum = 0;
     styleOption.progress = progress;
-    styleOption.text = text;
-    styleOption.textVisible = true;
-    // QStyleOption fields
-    styleOption.rect = option.rect.adjusted(0, 1, 0, -1);
-    // Qt 6 requires QStyle::State_Horizontal to be set for correctly drawing horizontal progress bar
+    styleOption.textVisible = false; // Hide default embedded text
+    styleOption.rect = barRect;
     styleOption.state = option.state | QStyle::State_Horizontal;
 
     const bool isEnabled = option.state.testFlag(QStyle::State_Enabled);
@@ -81,10 +100,23 @@ void ProgressBarPainter::paint(QPainter *painter, const QStyleOptionViewItem &op
         styleOption.palette.setColor(QPalette::Highlight, m_chunkColor);
     }
 
+    // Render components
     painter->save();
     const QStyle *style = m_dummyProgressBar.style();
+
+    // Draw row background
     style->drawPrimitive(QStyle::PE_PanelItemViewItem, &option, painter, option.widget);
+
+    // Draw 8px progress bar without text
     style->drawControl(QStyle::CE_ProgressBar, &styleOption, painter, &m_dummyProgressBar);
+
+    // Draw text manually on the right side
+    const QPalette::ColorRole textRole = (option.state & QStyle::State_Selected) 
+        ? QPalette::HighlightedText 
+        : QPalette::Text;
+    painter->setPen(option.palette.color(styleOption.palette.currentColorGroup(), textRole));
+    painter->drawText(textRect, Qt::AlignRight | Qt::AlignVCenter, text);
+
     painter->restore();
 }
 

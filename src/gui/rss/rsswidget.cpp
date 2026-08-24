@@ -127,10 +127,10 @@ RSSWidget::RSSWidget(IGUIApplication *app, QWidget *parent)
     m_ui->actionUpdate->setIcon(UIThemeManager::instance()->getIcon(u"view-refresh"_s));
     m_ui->actionUpdateAllFeeds->setIcon(UIThemeManager::instance()->getIcon(u"view-refresh"_s));
 #ifndef Q_OS_MACOS
-    m_ui->newFeedButton->setIcon(UIThemeManager::instance()->getIcon(u"list-add"_s));
-    m_ui->markReadButton->setIcon(UIThemeManager::instance()->getIcon(u"task-complete"_s, u"mail-mark-read"_s));
-    m_ui->updateAllButton->setIcon(UIThemeManager::instance()->getIcon(u"view-refresh"_s));
-    m_ui->rssDownloaderBtn->setIcon(UIThemeManager::instance()->getIcon(u"downloading"_s, u"download"_s));
+    m_ui->newFeedButton->setIcon(UIThemeManager::instance()->getIcon(u"btn-add"_s));
+    m_ui->markReadButton->setIcon(UIThemeManager::instance()->getIcon(u"btn-taskcompleted"_s, u"mail-mark-read"_s));
+    m_ui->updateAllButton->setIcon(UIThemeManager::instance()->getIcon(u"btn-refresh"_s));
+    m_ui->rssDownloaderBtn->setIcon(UIThemeManager::instance()->getIcon(u"btn-download"_s, u"download"_s));
 #endif
 
     m_rssFilter->setMaximumWidth(200);
