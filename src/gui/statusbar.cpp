@@ -90,7 +90,7 @@ StatusBar::StatusBar(QWidget *parent)
     m_dlSpeedLbl = createSpeedButton(UIThemeManager::instance()->getIcon(u"downloading"_s, u"downloading_small"_s), this);
     connect(m_dlSpeedLbl, &QAbstractButton::clicked, this, &StatusBar::capSpeed);
 
-    m_upSpeedLbl = createSpeedButton(UIThemeManager::instance()->getIcon(u"upload"_s, u"seeding"_s), this);
+    m_upSpeedLbl = createSpeedButton(UIThemeManager::instance()->getIcon(u"ftab-upload"_s), this);
     connect(m_upSpeedLbl, &QAbstractButton::clicked, this, &StatusBar::capSpeed);
 
     m_freeDiskSpaceLbl = new QLabel(tr("Free space: N/A"));

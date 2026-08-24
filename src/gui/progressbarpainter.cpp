@@ -58,14 +58,19 @@ void ProgressBarPainter::paint(QPainter *painter, const QStyleOptionViewItem &op
 {
     // Prepare the text bounding rect on the right
     const QFontMetrics fontMetrics = option.fontMetrics;
-    const int textMargin = 6;
+    const int textMargin = 6;      // Space between progress bar and text
+    const int rightPadding = 6;    // Space between text and the right cell boundary
     const int textWidth = fontMetrics.horizontalAdvance(text);
 
     // Calculate layout geometries
     QRect cellRect = option.rect;
+    
+    // Position textRect, offsetting it from the right boundary by rightPadding
     QRect textRect = cellRect;
-    textRect.setLeft(cellRect.right() - textWidth);
+    textRect.setRight(cellRect.right() - rightPadding);
+    textRect.setLeft(textRect.right() - textWidth);
 
+    // Position barRect to stop left of the text, incorporating textMargin
     QRect barRect = cellRect;
     barRect.setRight(textRect.left() - textMargin);
 
@@ -111,8 +116,8 @@ void ProgressBarPainter::paint(QPainter *painter, const QStyleOptionViewItem &op
     style->drawControl(QStyle::CE_ProgressBar, &styleOption, painter, &m_dummyProgressBar);
 
     // Draw text manually on the right side
-    const QPalette::ColorRole textRole = (option.state & QStyle::State_Selected) 
-        ? QPalette::HighlightedText 
+    const QPalette::ColorRole textRole = (option.state & QStyle::State_Selected)
+        ? QPalette::HighlightedText
         : QPalette::Text;
     painter->setPen(option.palette.color(styleOption.palette.currentColorGroup(), textRole));
     painter->drawText(textRect, Qt::AlignRight | Qt::AlignVCenter, text);
