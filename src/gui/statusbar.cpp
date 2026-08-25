@@ -87,7 +87,7 @@ StatusBar::StatusBar(QWidget *parent)
         , tr("No direct connections. This may indicate network configuration problems.")));
     connect(m_connecStatusLblIcon, &QAbstractButton::clicked, this, &StatusBar::connectionButtonClicked);
 
-    m_dlSpeedLbl = createSpeedButton(UIThemeManager::instance()->getIcon(u"downloading"_s, u"downloading_small"_s), this);
+    m_dlSpeedLbl = createSpeedButton(UIThemeManager::instance()->getIcon(u"download"_s), this);
     connect(m_dlSpeedLbl, &QAbstractButton::clicked, this, &StatusBar::capSpeed);
 
     m_upSpeedLbl = createSpeedButton(UIThemeManager::instance()->getIcon(u"ftab-upload"_s), this);

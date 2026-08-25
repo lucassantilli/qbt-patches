@@ -714,7 +714,10 @@ void TransferListWidget::displayColumnHeaderMenu()
         if (!BitTorrent::Session::instance()->isQueueingSystemEnabled() && (i == TransferListModel::TR_QUEUE_POSITION))
             continue;
 
-        const auto columnName = m_listModel->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString();
+        const QString columnName = (i == TransferListModel::TR_STATUS_ICON)
+            ? tr("Status Icon")
+            : m_listModel->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString();
+
         const QVariant columnToolTip = m_listModel->headerData(i, Qt::Horizontal, Qt::ToolTipRole);
         QAction *action = menu->addAction(columnName, this, [this, i](const bool checked)
         {

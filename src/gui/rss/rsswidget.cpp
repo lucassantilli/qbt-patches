@@ -117,7 +117,7 @@ RSSWidget::RSSWidget(IGUIApplication *app, QWidget *parent)
     // Icons
     m_ui->actionCopyFeedURL->setIcon(UIThemeManager::instance()->getIcon(u"edit-copy"_s));
     m_ui->actionDelete->setIcon(UIThemeManager::instance()->getIcon(u"edit-clear"_s));
-    m_ui->actionDownloadTorrent->setIcon(UIThemeManager::instance()->getIcon(u"downloading"_s, u"download"_s));
+    m_ui->actionDownloadTorrent->setIcon(UIThemeManager::instance()->getIcon(u"download"_s));
     m_ui->actionEditFeed->setIcon(UIThemeManager::instance()->getIcon(u"edit-rename"_s));
     m_ui->actionMarkItemsRead->setIcon(UIThemeManager::instance()->getIcon(u"task-complete"_s, u"mail-mark-read"_s));
     m_ui->actionNewFolder->setIcon(UIThemeManager::instance()->getIcon(u"folder-new"_s));

@@ -348,9 +348,12 @@ QString TransferListModel::displayValue(const BitTorrent::Torrent *torrent, cons
 
     const auto progressString = [](const qreal progress) -> QString
     {
-        return (progress >= 1)
-                ? u"100%"_s
-                : (Utils::String::fromDouble((progress * 100), 1) + u'%');
+        if (progress <= 0)
+			return u"0%"_s;
+		if (progress >= 1)
+			return u"100%"_s;
+
+		return Utils::String::fromDouble((progress * 100), 1) + u'%';
     };
 
     const auto statusString = [this](const BitTorrent::TorrentState state, const QString &errorMessage) -> QString
