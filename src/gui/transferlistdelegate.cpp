@@ -29,6 +29,9 @@
 
 #include "transferlistdelegate.h"
 
+#include <QPainter>
+#include <QPainterPath>
+#include <QPen>
 #include <QModelIndex>
 
 #include "base/preferences.h"
