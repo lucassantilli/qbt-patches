@@ -91,6 +91,49 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             m_progressBarPainter.paint(painter, customOption, index.data().toString(), progress, color);
         }
         break;
+
+    case TransferListModel::TR_STATUS:
+        {
+            painter->save();
+            painter->setRenderHint(QPainter::Antialiasing);
+
+            // Fetch state, text, and row selection color
+            const auto torrentState = index.data(TransferListModel::UnderlyingDataRole).value<BitTorrent::TorrentState>();
+            const QString statusText = index.data(Qt::DisplayRole).toString();
+            const QColor foregroundColor = index.data(Qt::ForegroundRole).value<QColor>();
+
+            // Calculate rounded pill geometry within cell
+            const QRect badgeRect = option.rect.adjusted(6, 4, -6, -4);
+            const int radius = badgeRect.height() / 2;
+
+            // Draw base selection background if row is highlighted
+            if (option.state & QStyle::State_Selected) {
+                painter->fillRect(option.rect, option.palette.highlight());
+            }
+
+            // Define background & border dynamically (uses theme text color as stroke/fill base)
+            QColor bgColor = foregroundColor.isValid() ? foregroundColor : option.palette.text().color();
+            QColor textColor = bgColor;
+
+            // Adjust opacity for badge background vs border/text
+            bgColor.setAlpha(30); // 12% opacity tint for background fill
+
+            QPainterPath path;
+            path.addRoundedRect(badgeRect, radius, radius);
+
+            // Draw badge fill & border
+            painter->fillPath(path, bgColor);
+            painter->setPen(QPen(textColor, 1));
+            painter->drawPath(path);
+
+            // Draw centered text inside badge
+            painter->setPen(textColor);
+            painter->drawText(badgeRect, Qt::AlignCenter, statusText);
+
+            painter->restore();
+        }
+        break;
+
     default:
         QStyledItemDelegate::paint(painter, option, index);
         break;
