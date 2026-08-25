@@ -481,7 +481,7 @@ QVariant TransferListModel::internalValue(const BitTorrent::Torrent *torrent, co
         return torrent->progress() * 100;
     case TR_STATUS_ICON:
     case TR_STATUS:
-        return QVariant::fromValue(torrent->state());
+        return static_cast<int>(torrent->state());
     case TR_SEEDS:
         return !alt ? torrent->seedsCount() : torrent->totalSeedsCount();
     case TR_PEERS:
