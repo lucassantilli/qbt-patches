@@ -64,7 +64,7 @@ void ProgressBarPainter::paint(QPainter *painter, const QStyleOptionViewItem &op
 
     // Calculate layout geometries
     QRect cellRect = option.rect;
-    
+
     // Position textRect, offsetting it from the right boundary by rightPadding
     QRect textRect = cellRect;
     textRect.setRight(cellRect.right() - rightPadding);

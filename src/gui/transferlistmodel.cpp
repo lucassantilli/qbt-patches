@@ -167,12 +167,12 @@ QVariant TransferListModel::headerData(const int section, const Qt::Orientation 
         {
             switch (section)
             {
-            case TR_STATUS_ICON: 
-                return {}; // Empty string so no text overlaps or displays alongside the icon
             case TR_QUEUE_POSITION: return QChar(u'#');
             case TR_NAME: return tr("Name", "i.e: torrent name");
             case TR_SIZE: return tr("Size", "i.e: torrent size");
             case TR_PROGRESS: return tr("Progress", "% Done");
+            case TR_STATUS_ICON: 
+                return {}; // Empty string so no text overlaps or displays alongside the icon
             case TR_STATUS: return tr("Status", "Torrent status (e.g. downloading, seeding, stopped)");
             case TR_SEEDS: return tr("Seeds", "i.e. full sources (often untranslated)");
             case TR_PEERS: return tr("Peers", "i.e. partial sources (often untranslated)");
@@ -221,6 +221,8 @@ QVariant TransferListModel::headerData(const int section, const Qt::Orientation 
         }
         else if (role == Qt::TextAlignmentRole)
         {
+            if (section == TR_STATUS_ICON)
+                return QVariant(Qt::AlignCenter);
             switch (section)
             {
             case TR_AMOUNT_DOWNLOADED:
@@ -383,8 +385,6 @@ QString TransferListModel::displayValue(const BitTorrent::Torrent *torrent, cons
 
     switch (column)
     {
-    case TR_STATUS_ICON:
-        return {};
     case TR_NAME:
         return torrent->name();
     case TR_QUEUE_POSITION:
@@ -393,6 +393,7 @@ QString TransferListModel::displayValue(const BitTorrent::Torrent *torrent, cons
         return unitString(torrent->wantedSize());
     case TR_PROGRESS:
         return progressString(torrent->progress());
+    case TR_STATUS_ICON:
     case TR_STATUS:
         return statusString(torrent->state(), torrent->error());
     case TR_SEEDS:
@@ -470,8 +471,6 @@ QVariant TransferListModel::internalValue(const BitTorrent::Torrent *torrent, co
 {
     switch (column)
     {
-    case TR_STATUS_ICON:
-        return QVariant::fromValue(torrent->state());
     case TR_NAME:
         return torrent->name();
     case TR_QUEUE_POSITION:
@@ -480,6 +479,7 @@ QVariant TransferListModel::internalValue(const BitTorrent::Torrent *torrent, co
         return torrent->wantedSize();
     case TR_PROGRESS:
         return torrent->progress() * 100;
+    case TR_STATUS_ICON:
     case TR_STATUS:
         return QVariant::fromValue(torrent->state());
     case TR_SEEDS:
@@ -569,6 +569,8 @@ QVariant TransferListModel::data(const QModelIndex &index, const int role) const
             return m_stateThemeColors.value(torrent->state());
         break;
     case Qt::DisplayRole:
+        if (index.column() == TR_STATUS_ICON)
+            return {};
         return displayValue(torrent, index.column());
     case UnderlyingDataRole:
         return internalValue(torrent, index.column(), false);
@@ -581,8 +583,8 @@ QVariant TransferListModel::data(const QModelIndex &index, const int role) const
     case Qt::ToolTipRole:
         switch (index.column())
         {
-        case TR_STATUS_ICON:
         case TR_NAME:
+        case TR_STATUS_ICON:
         case TR_STATUS:
         case TR_CATEGORY:
         case TR_TAGS:
@@ -595,6 +597,8 @@ QVariant TransferListModel::data(const QModelIndex &index, const int role) const
         }
         break;
     case Qt::TextAlignmentRole:
+        if (index.column() == TR_STATUS_ICON)
+            return QVariant(Qt::AlignCenter);
         switch (index.column())
         {
         case TR_AMOUNT_DOWNLOADED:
