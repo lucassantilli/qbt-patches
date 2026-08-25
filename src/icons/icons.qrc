@@ -314,6 +314,8 @@
         <file>ftab-force-recheck.svg</file>
         <file>ftab-moving.svg</file>
         <file>ftab-queued.svg</file>
+        <file>ftab-running.svg</file>
+        <file>ftab-stopped.svg</file>
         <file>ftab-upload.svg</file>
         <file>go-bottom.svg</file>
         <file>go-down.svg</file>

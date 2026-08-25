@@ -171,6 +171,8 @@ inline QSet<QString> defaultUIThemeIcons()
         u"ftab-force-recheck.svg"_s,
         u"ftab-moving.svg"_s,
         u"ftab-queued.svg"_s,
+        u"ftab-running.svg"_s,
+        u"ftab-stopped.svg"_s,
         u"ftab-upload.svg"_s,
         u"go-bottom"_s,
         u"go-down"_s,

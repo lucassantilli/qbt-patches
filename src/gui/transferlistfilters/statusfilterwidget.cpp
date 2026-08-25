@@ -57,10 +57,10 @@ StatusFilterWidget::StatusFilterWidget(QWidget *parent, TransferListWidget *tran
     completed->setData(Qt::DecorationRole, UIThemeManager::instance()->getIcon(u"ftab-checked-completed"_s));
     auto *running = new QListWidgetItem(this);
     running->setData(Qt::DisplayRole, tr("Running (0)"));
-    running->setData(Qt::DecorationRole, UIThemeManager::instance()->getIcon(u"torrent-start"_s, u"media-playback-start"_s));
+    running->setData(Qt::DecorationRole, UIThemeManager::instance()->getIcon(u"ftab-running"_s));
     auto *stopped = new QListWidgetItem(this);
     stopped->setData(Qt::DisplayRole, tr("Stopped (0)"));
-    stopped->setData(Qt::DecorationRole, UIThemeManager::instance()->getIcon(u"stopped"_s, u"media-playback-pause"_s));
+    stopped->setData(Qt::DecorationRole, UIThemeManager::instance()->getIcon(u"ftab-stopped"_s));
     auto *active = new QListWidgetItem(this);
     active->setData(Qt::DisplayRole, tr("Active (0)"));
     active->setData(Qt::DecorationRole, UIThemeManager::instance()->getIcon(u"filter-active"_s, u"filteractive"_s));

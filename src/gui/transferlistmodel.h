@@ -56,6 +56,7 @@ public:
     enum Column
     {
         TR_QUEUE_POSITION,
+        TR_STATUS_ICON,
         TR_NAME,
         TR_SIZE,
         TR_TOTAL_SIZE,

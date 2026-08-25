@@ -155,10 +155,20 @@ QVariant TransferListModel::headerData(const int section, const Qt::Orientation 
 {
     if (orientation == Qt::Horizontal)
     {
+        if (role == Qt::DecorationRole)
+        {
+            if (section == TR_STATUS_ICON)
+            {
+                return UIThemeManager::instance()->getIcon(u"ftab-running"_s);
+            }
+        }
+
         if (role == Qt::DisplayRole)
         {
             switch (section)
             {
+            case TR_STATUS_ICON: 
+                return {}; // Empty string so no text overlaps or displays alongside the icon
             case TR_QUEUE_POSITION: return QChar(u'#');
             case TR_NAME: return tr("Name", "i.e: torrent name");
             case TR_SIZE: return tr("Size", "i.e: torrent size");
@@ -204,6 +214,7 @@ QVariant TransferListModel::headerData(const int section, const Qt::Orientation 
         {
             switch (section)
             {
+            case TR_STATUS_ICON: return tr("Status");
             case TR_POPULARITY: return tr("Ratio / Time Active (in months), indicates how popular the torrent is");
             default: return {};
             }
@@ -372,6 +383,8 @@ QString TransferListModel::displayValue(const BitTorrent::Torrent *torrent, cons
 
     switch (column)
     {
+    case TR_STATUS_ICON:
+        return {};
     case TR_NAME:
         return torrent->name();
     case TR_QUEUE_POSITION:
@@ -457,6 +470,8 @@ QVariant TransferListModel::internalValue(const BitTorrent::Torrent *torrent, co
 {
     switch (column)
     {
+    case TR_STATUS_ICON:
+        return QVariant::fromValue(torrent->state());
     case TR_NAME:
         return torrent->name();
     case TR_QUEUE_POSITION:
@@ -560,12 +575,13 @@ QVariant TransferListModel::data(const QModelIndex &index, const int role) const
     case AdditionalUnderlyingDataRole:
         return internalValue(torrent, index.column(), true);
     case Qt::DecorationRole:
-        if (index.column() == TR_NAME)
+        if (index.column() == TR_STATUS_ICON)
             return getIconByState(torrent->state());
         break;
     case Qt::ToolTipRole:
         switch (index.column())
         {
+        case TR_STATUS_ICON:
         case TR_NAME:
         case TR_STATUS:
         case TR_CATEGORY:
