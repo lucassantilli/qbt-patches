@@ -121,8 +121,8 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
             // 2. State checking & styling setup
             const bool isStalled = (torrentState == TorrentState::StalledDownloading 
-                                 || torrentState == TorrentState::StalledUploading);
-                                 || torrentState == TorrentState::StoppedDownloading);
+                                 || torrentState == TorrentState::StalledUploading
+                                 || torrentState == TorrentState::StoppedDownloading
                                  || torrentState == TorrentState::StoppedUploading);
 
             const QColor themeColor = foregroundColor.isValid() ? foregroundColor : option.palette.text().color();
