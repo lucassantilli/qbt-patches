@@ -107,25 +107,23 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             const QString statusText = index.data(Qt::DisplayRole).toString();
             const QColor foregroundColor = index.data(Qt::ForegroundRole).value<QColor>();
 
-            // Draw selection background if the row is highlighted
-            if (option.state & QStyle::State_Selected) {
-                painter->fillRect(option.rect, option.palette.highlight());
-            }
-
             // 1. Calculate fixed badge geometry (used by ALL states to ensure uniform alignment)
-            const int horizontalPadding = 8; // 4px padding on left & right
+            const int horizontalPadding = 12; // 6px padding on left & right
             const int textWidth = option.fontMetrics.horizontalAdvance(statusText);
             const int badgeWidth = textWidth + horizontalPadding;
             const int badgeHeight = option.rect.height() - 8;
 
             // Center the badge rect inside the column cell
-            const int badgeX = option.rect.x() + (option.rect.width() - badgeWidth) / 2;
+            const int paddingLeft = 5;
+            const int badgeX = option.rect.x() + paddingLeft;
             const int badgeY = option.rect.y() + (option.rect.height() - badgeHeight) / 2;
             const QRect badgeRect(badgeX, badgeY, badgeWidth, badgeHeight);
 
             // 2. State checking & styling setup
             const bool isStalled = (torrentState == TorrentState::StalledDownloading 
                                  || torrentState == TorrentState::StalledUploading);
+                                 || torrentState == TorrentState::StoppedDownloading);
+                                 || torrentState == TorrentState::StoppedUploading);
 
             const QColor themeColor = foregroundColor.isValid() ? foregroundColor : option.palette.text().color();
             const int radius = 4;
