@@ -136,12 +136,10 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             {
                 // Let the base delegate handle standard text painting (no badge)
                 QStyledItemDelegate::paint(painter, option, index);
-                break; 
+                break;
             }
 
             // --- Custom Badge Painting ---
-            
-            // Let the base delegate paint the standard background (handles selection, hover, etc.)
             QStyledItemDelegate::paint(painter, option, index);
 
             painter->save();
@@ -174,11 +172,8 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             case TorrentState::Uploading:
             case TorrentState::ForcedUploading:
                 {
-                    // "Palette.Dark" for badge and "Palette.WindowText" for label
-                    // Using QPalette::Active explicitly ensures the label color is static
-                    // and won't wash out/change when the window loses focus.
-                    const QColor bgColor = option.palette.color(QPalette::Active, QPalette::Dark);
-                    const QColor labelColor = option.palette.color(QPalette::Active, QPalette::WindowText);
+                    const QColor bgColor = option.palette.color(QPalette::Active, QPalette::WindowText);
+                    const QColor labelColor = option.palette.color(QPalette::Active, QPalette::Dark);
 
                     painter->fillPath(path, bgColor);
                     painter->setPen(labelColor);

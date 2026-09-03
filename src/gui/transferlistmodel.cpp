@@ -350,7 +350,7 @@ QString TransferListModel::displayValue(const BitTorrent::Torrent *torrent, cons
     {
         if (progress <= 0)
             return u"0%"_s;
-		if (progress >= 1)
+        if (progress >= 1)
             return u"100%"_s;
 
         return Utils::String::fromDouble((progress * 100), 1) + u'%';
