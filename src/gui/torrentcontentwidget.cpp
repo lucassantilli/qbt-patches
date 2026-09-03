@@ -12,6 +12,7 @@
 #include <QSet>
 #include <QShortcut>
 #include <QWheelEvent>
+#include <QRegularExpression>
 
 #include "base/bittorrent/torrentcontenthandler.h"
 #include "base/path.h"
@@ -249,7 +250,72 @@ Path TorrentContentWidget::getItemPath(const QModelIndex &index) const
 
 void TorrentContentWidget::setFilterPattern(const QString &patternText, const FilterPatternFormat format)
 {
-    if (format == FilterPatternFormat::PlainText)
+    const QString trimmedPattern = patternText.trimmed();
+
+    // Define video extensions list
+    static const QStringList videoExts = {
+        "3gp", "asf", "asx", "avi", "divx", "flv", "m2t", "m2ts",
+        "m4v", "mkv", "mp4", "mpeg", "mpg", "mov", "mts", "ts", "vob", "webm", "wmv"
+    };
+
+    // Define picture extensions list
+    static const QStringList picExts = {
+        "jpg", "jpeg", "gif", "png", "bmp", "webp", "tiff", "svg", "ico"
+    };
+
+    auto buildExtRegex = [](const QStringList &exts, bool exclude) {
+        QString joined = exts.join(u'|');
+        if (exclude) {
+            return QString(R"(^((?!\.(?:%1)$).)*$)").arg(joined);
+        }
+        return QString(R"(\.(?:%1)$)").arg(joined);
+    };
+
+    QString regexPattern;
+    bool isSpecialFilter = true;
+
+    if (trimmedPattern.compare(QLatin1String("video:"), Qt::CaseInsensitive) == 0)
+    {
+        regexPattern = buildExtRegex(videoExts, false);
+    }
+    else if (trimmedPattern.compare(QLatin1String("!video:"), Qt::CaseInsensitive) == 0)
+    {
+        regexPattern = buildExtRegex(videoExts, true);
+    }
+    else if (trimmedPattern.compare(QLatin1String("pic:"), Qt::CaseInsensitive) == 0)
+    {
+        regexPattern = buildExtRegex(picExts, false);
+    }
+    else if (trimmedPattern.compare(QLatin1String("!pic:"), Qt::CaseInsensitive) == 0)
+    {
+        regexPattern = buildExtRegex(picExts, true);
+    }
+    else if (trimmedPattern.startsWith(QLatin1String("ext:"), Qt::CaseInsensitive))
+    {
+        QString ext = trimmedPattern.mid(4).trimmed();
+        if (!ext.isEmpty())
+            regexPattern = QString(R"(\.%1$)").arg(QRegularExpression::escape(ext));
+        else
+            isSpecialFilter = false;
+    }
+    else if (trimmedPattern.startsWith(QLatin1String("!ext:"), Qt::CaseInsensitive))
+    {
+        QString ext = trimmedPattern.mid(5).trimmed();
+        if (!ext.isEmpty())
+            regexPattern = QString(R"(^((?!\.%1$).)*$)").arg(QRegularExpression::escape(ext));
+        else
+            isSpecialFilter = false;
+    }
+    else
+    {
+        isSpecialFilter = false;
+    }
+
+    if (isSpecialFilter)
+    {
+        m_filterModel->setFilterRegularExpression(QRegularExpression(regexPattern, QRegularExpression::CaseInsensitiveOption));
+    }
+    else if (format == FilterPatternFormat::PlainText)
     {
         m_filterModel->setFilterFixedString(patternText);
         m_filterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);

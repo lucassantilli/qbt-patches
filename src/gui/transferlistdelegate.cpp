@@ -99,52 +99,63 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         {
             using BitTorrent::TorrentState;
 
+            // 1. Let the base delegate paint the standard background (handles selection, hover, etc.)
+            QStyledItemDelegate::paint(painter, option, index);
+
             painter->save();
             painter->setRenderHint(QPainter::Antialiasing);
 
-            // Fetch state, text, and row selection color
+            // Fetch state, text, and status color
             const auto torrentState = index.data(TransferListModel::UnderlyingDataRole).value<TorrentState>();
             const QString statusText = index.data(Qt::DisplayRole).toString();
-            const QColor foregroundColor = index.data(Qt::ForegroundRole).value<QColor>();
+            const QColor statusColor = index.data(Qt::ForegroundRole).value<QColor>();
 
-            // 1. Calculate fixed badge geometry (used by ALL states to ensure uniform alignment)
-            const int horizontalPadding = 12; // 6px padding on left & right
+            // 2. Calculate fixed badge geometry
+            const int horizontalPadding = 12;
             const int textWidth = option.fontMetrics.horizontalAdvance(statusText);
             const int badgeWidth = textWidth + horizontalPadding;
             const int badgeHeight = option.rect.height() - 8;
 
-            // Center the badge rect inside the column cell
             const int paddingLeft = 5;
             const int badgeX = option.rect.x() + paddingLeft;
             const int badgeY = option.rect.y() + (option.rect.height() - badgeHeight) / 2;
             const QRect badgeRect(badgeX, badgeY, badgeWidth, badgeHeight);
 
-            // 2. State checking & styling setup
-            const bool isStalled = (torrentState == TorrentState::StalledDownloading 
-                                 || torrentState == TorrentState::StalledUploading
-                                 || torrentState == TorrentState::StoppedDownloading
-                                 || torrentState == TorrentState::StoppedUploading);
-
-            const QColor themeColor = foregroundColor.isValid() ? foregroundColor : option.palette.text().color();
             const int radius = 4;
-
             QPainterPath path;
             path.addRoundedRect(badgeRect, radius, radius);
 
-            if (isStalled) {
-                // Stalled: No background fill, no border.
-                // Just set the pen color so the text matches the theme.
-                painter->setPen(themeColor);
-            }
-            else {
-                // Active: Fill the background solid (no border stroke).
-                painter->fillPath(path, themeColor);
-                
-                // Set the pen color so the text is white.
-                painter->setPen(Qt::white);
+            // 3. Apply styling rules based on state
+            switch (torrentState)
+            {
+            case TorrentState::StoppedDownloading:
+            case TorrentState::StoppedUploading:
+            case TorrentState::MissingFiles:
+            case TorrentState::Error:
+                {
+                    // Painted based on the status color, with a white label
+                    const QColor bgColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Text);
+                    painter->fillPath(path, bgColor);
+                    painter->setPen(Qt::white);
+                }
+                break;
+
+            case TorrentState::Downloading:
+            case TorrentState::ForcedDownloading:
+            case TorrentState::Uploading:
+            case TorrentState::ForcedUploading:
+            default:
+                {
+                    // Palette.WindowText for background, Palette.Dark for the label
+                    const QColor bgColor = option.palette.color(QPalette::WindowText);
+                    const QColor labelColor = option.palette.color(QPalette::Dark);
+
+                    painter->fillPath(path, bgColor);
+                    painter->setPen(labelColor);
+                }
+                break;
             }
 
-            // Draw text perfectly aligned in the center of the invisible bounding box
             painter->drawText(badgeRect, Qt::AlignCenter, statusText);
 
             painter->restore();
