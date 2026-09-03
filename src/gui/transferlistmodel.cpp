@@ -171,7 +171,7 @@ QVariant TransferListModel::headerData(const int section, const Qt::Orientation 
             case TR_NAME: return tr("Name", "i.e: torrent name");
             case TR_SIZE: return tr("Size", "i.e: torrent size");
             case TR_PROGRESS: return tr("Progress", "% Done");
-            case TR_STATUS_ICON: 
+            case TR_STATUS_ICON:
                 return {}; // Empty string so no text overlaps or displays alongside the icon
             case TR_STATUS: return tr("Status", "Torrent status (e.g. downloading, seeding, stopped)");
             case TR_SEEDS: return tr("Seeds", "i.e. full sources (often untranslated)");
@@ -349,11 +349,11 @@ QString TransferListModel::displayValue(const BitTorrent::Torrent *torrent, cons
     const auto progressString = [](const qreal progress) -> QString
     {
         if (progress <= 0)
-			return u"0%"_s;
+            return u"0%"_s;
 		if (progress >= 1)
-			return u"100%"_s;
+            return u"100%"_s;
 
-		return Utils::String::fromDouble((progress * 100), 1) + u'%';
+        return Utils::String::fromDouble((progress * 100), 1) + u'%';
     };
 
     const auto statusString = [this](const BitTorrent::TorrentState state, const QString &errorMessage) -> QString

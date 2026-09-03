@@ -252,15 +252,15 @@ void TorrentContentWidget::setFilterPattern(const QString &patternText, const Fi
 {
     const QString trimmedPattern = patternText.trimmed();
 
-    // Define video extensions list
+    // Define video extensions list using Qt string literals
     static const QStringList videoExts = {
-        "3gp", "asf", "asx", "avi", "divx", "flv", "m2t", "m2ts",
-        "m4v", "mkv", "mp4", "mpeg", "mpg", "mov", "mts", "ts", "vob", "webm", "wmv"
+        u"3gp"_s, u"asf"_s, u"asx"_s, u"avi"_s, u"divx"_s, u"flv"_s, u"m2t"_s, u"m2ts"_s,
+        u"m4v"_s, u"mkv"_s, u"mp4"_s, u"mpeg"_s, u"mpg"_s, u"mov"_s, u"mts"_s, u"ts"_s, u"vob"_s, u"webm"_s, u"wmv"_s
     };
 
-    // Define picture extensions list
+    // Define picture extensions list using Qt string literals
     static const QStringList picExts = {
-        "jpg", "jpeg", "gif", "png", "bmp", "webp", "tiff", "svg", "ico"
+        u"jpg"_s, u"jpeg"_s, u"gif"_s, u"png"_s, u"bmp"_s, u"webp"_s, u"tiff"_s, u"svg"_s, u"ico"_s
     };
 
     auto buildExtRegex = [](const QStringList &exts, bool exclude) {
@@ -274,23 +274,23 @@ void TorrentContentWidget::setFilterPattern(const QString &patternText, const Fi
     QString regexPattern;
     bool isSpecialFilter = true;
 
-    if (trimmedPattern.compare(QLatin1String("video:"), Qt::CaseInsensitive) == 0)
+    if (trimmedPattern.compare(u"video:"_s, Qt::CaseInsensitive) == 0)
     {
         regexPattern = buildExtRegex(videoExts, false);
     }
-    else if (trimmedPattern.compare(QLatin1String("!video:"), Qt::CaseInsensitive) == 0)
+    else if (trimmedPattern.compare(u"!video:"_s, Qt::CaseInsensitive) == 0)
     {
         regexPattern = buildExtRegex(videoExts, true);
     }
-    else if (trimmedPattern.compare(QLatin1String("pic:"), Qt::CaseInsensitive) == 0)
+    else if (trimmedPattern.compare(u"pic:"_s, Qt::CaseInsensitive) == 0)
     {
         regexPattern = buildExtRegex(picExts, false);
     }
-    else if (trimmedPattern.compare(QLatin1String("!pic:"), Qt::CaseInsensitive) == 0)
+    else if (trimmedPattern.compare(u"!pic:"_s, Qt::CaseInsensitive) == 0)
     {
         regexPattern = buildExtRegex(picExts, true);
     }
-    else if (trimmedPattern.startsWith(QLatin1String("ext:"), Qt::CaseInsensitive))
+    else if (trimmedPattern.startsWith(u"ext:"_s, Qt::CaseInsensitive))
     {
         QString ext = trimmedPattern.mid(4).trimmed();
         if (!ext.isEmpty())
@@ -298,7 +298,7 @@ void TorrentContentWidget::setFilterPattern(const QString &patternText, const Fi
         else
             isSpecialFilter = false;
     }
-    else if (trimmedPattern.startsWith(QLatin1String("!ext:"), Qt::CaseInsensitive))
+    else if (trimmedPattern.startsWith(u"!ext:"_s, Qt::CaseInsensitive))
     {
         QString ext = trimmedPattern.mid(5).trimmed();
         if (!ext.isEmpty())
