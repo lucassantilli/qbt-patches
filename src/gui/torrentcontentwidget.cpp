@@ -266,9 +266,9 @@ void TorrentContentWidget::setFilterPattern(const QString &patternText, const Fi
     auto buildExtRegex = [](const QStringList &exts, bool exclude) {
         QString joined = exts.join(u'|');
         if (exclude) {
-            return QString(R"(^((?!\.(?:%1)$).)*$)").arg(joined);
+            return uR"(^((?!\.(?:%1)$).)*$)"_s.arg(joined);
         }
-        return QString(R"(\.(?:%1)$)").arg(joined);
+        return uR"(\.(?:%1)$)"_s.arg(joined);
     };
 
     QString regexPattern;
@@ -294,7 +294,7 @@ void TorrentContentWidget::setFilterPattern(const QString &patternText, const Fi
     {
         QString ext = trimmedPattern.mid(4).trimmed();
         if (!ext.isEmpty())
-            regexPattern = QString(R"(\.%1$)").arg(QRegularExpression::escape(ext));
+            regexPattern = uR"(\.%1$)"_s.arg(QRegularExpression::escape(ext));
         else
             isSpecialFilter = false;
     }
@@ -302,7 +302,7 @@ void TorrentContentWidget::setFilterPattern(const QString &patternText, const Fi
     {
         QString ext = trimmedPattern.mid(5).trimmed();
         if (!ext.isEmpty())
-            regexPattern = QString(R"(^((?!\.%1$).)*$)").arg(QRegularExpression::escape(ext));
+            regexPattern = uR"(^((?!\.%1$).)*$)"_s.arg(QRegularExpression::escape(ext));
         else
             isSpecialFilter = false;
     }
