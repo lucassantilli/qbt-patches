@@ -64,37 +64,6 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 {
     switch (index.column())
     {
-    case TransferListModel::TR_PROGRESS:
-        {
-            using namespace BitTorrent;
-
-            const auto isEnableState = [](const TorrentState state) -> bool
-            {
-                switch (state)
-                {
-                case TorrentState::Error:
-                case TorrentState::StoppedDownloading:
-                case TorrentState::Unknown:
-                    return false;
-                default:
-                    return true;
-                }
-            };
-
-            const int progress = static_cast<int>(index.data(TransferListModel::UnderlyingDataRole).toReal());
-
-            const QModelIndex statusIndex = index.siblingAtColumn(TransferListModel::TR_STATUS);
-            const auto torrentState = statusIndex.data(TransferListModel::UnderlyingDataRole).value<TorrentState>();
-
-            QStyleOptionViewItem customOption {option};
-            customOption.state.setFlag(QStyle::State_Enabled, isEnableState(torrentState));
-
-            const QColor color = Preferences::instance()->getProgressBarFollowsTextColor() ? index.data(Qt::ForegroundRole).value<QColor>() : QColor();
-
-            m_progressBarPainter.paint(painter, customOption, index.data().toString(), progress, color);
-        }
-        break;
-
     case TransferListModel::TR_STATUS:
         {
             using BitTorrent::TorrentState;
@@ -103,9 +72,7 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             const QString statusText = index.data(Qt::DisplayRole).toString();
             const QColor statusColor = index.data(Qt::ForegroundRole).value<QColor>();
 
-            // --- Base Background Painting ---
-            // Copy the option and strip the text so the base delegate only paints 
-            // the background (selection/hover) without double-drawing the text.
+            // 1. Paint background ONLY (strip text completely from the base delegate to prevent duplication)
             QStyleOptionViewItem baseOption = option;
             baseOption.text = QString();
             QStyledItemDelegate::paint(painter, baseOption, index);
@@ -113,72 +80,86 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             painter->save();
             painter->setRenderHint(QPainter::Antialiasing);
 
-            // Calculate fixed badge geometry for ALL states to ensure UI alignment
-            const int horizontalPadding = 12;
-            const int textWidth = option.fontMetrics.horizontalAdvance(statusText);
-            const int badgeWidth = textWidth + horizontalPadding;
-            const int badgeHeight = option.rect.height() - 8;
+            // Determine if this specific state uses a rounded badge layout or inline text
+            const bool useBadge = [] (TorrentState state) {
+                switch (state)
+                {
+                case TorrentState::Downloading:
+                case TorrentState::ForcedDownloading:
+                case TorrentState::Uploading:
+                case TorrentState::ForcedUploading:
+                case TorrentState::StoppedDownloading:
+                case TorrentState::StoppedUploading:
+                case TorrentState::MissingFiles:
+                case TorrentState::Error:
+                    return true;
+                default:
+                    return false;
+                }
+            }(torrentState);
 
-            const int paddingLeft = 5;
-            const int badgeX = option.rect.x() + paddingLeft;
-            const int badgeY = option.rect.y() + (option.rect.height() - badgeHeight) / 2;
-            const QRect badgeRect(badgeX, badgeY, badgeWidth, badgeHeight);
-
-            const int radius = 4;
-            QPainterPath path;
-            path.addRoundedRect(badgeRect, radius, radius);
-
-            // Apply styling rules based on state
-            switch (torrentState)
+            if (useBadge)
             {
-            case TorrentState::Downloading:
-            case TorrentState::ForcedDownloading:
-            case TorrentState::Uploading:
-            case TorrentState::ForcedUploading:
-                {
-                    // bgColor uses QPalette::WindowText and labelColor uses QPalette::Dark
-                    const QColor bgColor = option.palette.color(QPalette::Active, QPalette::WindowText);
-                    const QColor labelColor = option.palette.color(QPalette::Active, QPalette::Dark);
+                // --- Badge State Rendering ---
+                const int horizontalPadding = 12;
+                const int textWidth = option.fontMetrics.horizontalAdvance(statusText);
+                const int badgeWidth = textWidth + horizontalPadding;
+                const int badgeHeight = option.rect.height() - 8;
 
-                    painter->fillPath(path, bgColor);
-                    painter->setPen(labelColor);
-                }
-                break;
+                const int paddingLeft = 5;
+                const int badgeX = option.rect.x() + paddingLeft;
+                const int badgeY = option.rect.y() + (option.rect.height() - badgeHeight) / 2;
+                const QRect badgeRect(badgeX, badgeY, badgeWidth, badgeHeight);
 
-            case TorrentState::StoppedDownloading:
-            case TorrentState::StoppedUploading:
-            case TorrentState::MissingFiles:
-            case TorrentState::Error:
-                {
-                    // Painted based on the status color, with a white label
-                    const QColor bgColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Active, QPalette::Text);
-                    painter->fillPath(path, bgColor);
-                    painter->setPen(Qt::white);
-                }
-                break;
+                const int radius = 4;
+                QPainterPath path;
+                path.addRoundedRect(badgeRect, radius, radius);
 
-            case TorrentState::DownloadingMetadata:
-            case TorrentState::ForcedDownloadingMetadata:
-            case TorrentState::StalledDownloading:
-            case TorrentState::StalledUploading:
-            case TorrentState::QueuedDownloading:
-            case TorrentState::QueuedUploading:
-            case TorrentState::CheckingDownloading:
-            case TorrentState::CheckingUploading:
-            case TorrentState::CheckingResumeData:
-            case TorrentState::Moving:
-            default:
+                switch (torrentState)
                 {
-                    // "Invisible" badge: we skip fillPath() so the background remains transparent.
-                    // Set the pen to the standard active text color (or status color if valid) so text renders normally.
-                    const QColor labelColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Active, QPalette::Text);
-                    painter->setPen(labelColor);
+                case TorrentState::Downloading:
+                case TorrentState::ForcedDownloading:
+                case TorrentState::Uploading:
+                case TorrentState::ForcedUploading:
+                    {
+                        const QColor bgColor = option.palette.color(QPalette::Active, QPalette::WindowText);
+                        const QColor labelColor = option.palette.color(QPalette::Active, QPalette::Dark);
+                        painter->fillPath(path, bgColor);
+                        painter->setPen(labelColor);
+                    }
+                    break;
+
+                case TorrentState::StoppedDownloading:
+                case TorrentState::StoppedUploading:
+                case TorrentState::MissingFiles:
+                case TorrentState::Error:
+                    {
+                        const QColor bgColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Active, QPalette::Text);
+                        painter->fillPath(path, bgColor);
+                        painter->setPen(Qt::white);
+                    }
+                    break;
+
+                default:
+                    break;
                 }
-                break;
+
+                painter->drawText(badgeRect, Qt::AlignCenter, statusText);
             }
+            else
+            {
+                // --- Non-Badge (Custom Plain Text) State Rendering ---
+                // Align text consistently with your badge padding offset so they share the same X baseline
+                const int paddingLeft = 5;
+                QRect textRect = option.rect;
+                textRect.setX(textRect.x() + paddingLeft);
 
-            // Draw the text centrally aligned within the badge geometry for every state
-            painter->drawText(badgeRect, Qt::AlignCenter, statusText);
+                const QColor labelColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Active, QPalette::Text);
+                painter->setPen(labelColor);
+                
+                // Draw text explicitly via painter to match font metrics and alignment without base overlap
+                painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, statusText);
+            }
 
             painter->restore();
         }
