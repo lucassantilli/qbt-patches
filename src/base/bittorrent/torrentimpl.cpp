@@ -466,6 +466,16 @@ bool TorrentImpl::isPrivate() const
     return m_torrentInfo.isPrivate();
 }
 
+bool TorrentImpl::hasWorkingTracker() const
+{
+    for (const TrackerEntryStatus &tracker : m_trackerEntryStatuses)
+    {
+        if (tracker.state == TrackerEndpointState::Working)
+            return true;
+    }
+    return false;
+}
+
 qlonglong TorrentImpl::totalSize() const
 {
     return m_torrentInfo.totalSize();
@@ -1288,6 +1298,8 @@ TorrentState TorrentImpl::state() const
 
 void TorrentImpl::updateState()
 {
+    m_hasNoWorkingTrackerError = false;
+
     if (m_nativeStatus.state == lt::torrent_status::checking_resume_data)
     {
         m_state = TorrentState::CheckingResumeData;
@@ -1304,6 +1316,11 @@ void TorrentImpl::updateState()
     {
         m_state = TorrentState::Error;
     }
+    else if (isPrivate() && !hasWorkingTracker())
+    {
+        m_hasNoWorkingTrackerError = true;
+        m_state = TorrentState::Error;
+    }
     else if (!hasMetadata())
     {
         if (isStopped())
@@ -1315,7 +1332,6 @@ void TorrentImpl::updateState()
     }
     else if ((m_nativeStatus.state == lt::torrent_status::checking_files) && !isStopped())
     {
-        // If the torrent is not just in the "checking" state, but is being actually checked
         m_state = m_hasFinishedStatus ? TorrentState::CheckingUploading : TorrentState::CheckingDownloading;
     }
     else if (isFinished())
@@ -1368,6 +1384,17 @@ int TorrentImpl::queuePosition() const
 
 QString TorrentImpl::error() const
 {
+    if (m_hasNoWorkingTrackerError)
+    {
+        for (const TrackerEntryStatus &tracker : m_trackerEntryStatuses)
+        {
+            if (!tracker.message.isEmpty())
+                return tracker.message;
+        }
+
+        return tr("No working trackers");
+    }
+	
     if (m_nativeStatus.errc)
     {
 #if LIBTORRENT_VERSION_NUM >= 20100
@@ -1840,6 +1867,8 @@ TrackerEntryStatus TorrentImpl::updateTrackerEntryStatus(const lt::announce_entr
 
     ::updateTrackerEntryStatus(*it, announceEntry, btProtocols, updateInfo);
     m_announceStatus.reset();
+
+    updateState();
 
     return *it;
 }

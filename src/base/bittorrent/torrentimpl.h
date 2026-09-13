@@ -304,6 +304,9 @@ namespace BitTorrent
         void updateProgress();
         void updateState();
 
+        bool hasWorkingTracker() const;
+        bool m_hasNoWorkingTrackerError = false;
+
         bool isMoveInProgress() const;
 
         void setAutoManaged(bool enable);

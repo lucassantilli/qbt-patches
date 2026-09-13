@@ -252,15 +252,23 @@ void TorrentContentWidget::setFilterPattern(const QString &patternText, const Fi
 {
     const QString trimmedPattern = patternText.trimmed();
 
-    // Define video extensions list using Qt string literals
+    // Define video extensions list
     static const QStringList videoExts = {
         u"3gp"_s, u"asf"_s, u"asx"_s, u"avi"_s, u"divx"_s, u"flv"_s, u"m2t"_s, u"m2ts"_s,
         u"m4v"_s, u"mkv"_s, u"mp4"_s, u"mpeg"_s, u"mpg"_s, u"mov"_s, u"mts"_s, u"ts"_s, u"vob"_s, u"webm"_s, u"wmv"_s
     };
 
-    // Define picture extensions list using Qt string literals
+    // Define picture extensions list
     static const QStringList picExts = {
-        u"jpg"_s, u"jpeg"_s, u"gif"_s, u"png"_s, u"bmp"_s, u"webp"_s, u"tiff"_s, u"svg"_s, u"ico"_s
+        u"avif"_s, u"bmp"_s, u"gif"_s, u"heic"_s, u"heif"_s, u"hif"_s, u"ico"_s, u"jfi"_s, u"jfif"_s,
+        u"jif"_s, u"jpe"_s, u"jpeg"_s, u"jpg"_s, u"pcx"_s, u"png"_s, u"psb"_s, u"psd"_s, u"rle"_s, u"svg"_s,
+        u"tga"_s, u"tif"_s, u"tiff"_s, u"webp"_s
+    };
+	
+    // Define audio extensions list
+    static const QStringList audioExts = {
+        u"aac"_s, u"ac3"_s, u"aif"_s, u"amr"_s, u"au"_s, u"dts"_s, u"flac"_s, u"m2a"_s, u"m4a"_s,
+        u"mid"_s, u"midi"_s, u"mka"_s, u"mp3"_s, u"mpa"_s, u"ogg"_s, u"opus"_s, u"snd"_s, u"wav"_s, u"weba"_s, u"wma"_s
     };
 
     auto buildExtRegex = [](const QStringList &exts, bool exclude) {
@@ -274,21 +282,39 @@ void TorrentContentWidget::setFilterPattern(const QString &patternText, const Fi
     QString regexPattern;
     bool isSpecialFilter = true;
 
-    if (trimmedPattern.compare(u"video:"_s, Qt::CaseInsensitive) == 0)
+    if (trimmedPattern.compare(u"video:"_s, Qt::CaseInsensitive) == 0 ||
+	    trimmedPattern.compare(u"vid:"_s, Qt::CaseInsensitive) == 0)
     {
         regexPattern = buildExtRegex(videoExts, false);
     }
-    else if (trimmedPattern.compare(u"!video:"_s, Qt::CaseInsensitive) == 0)
+    else if (trimmedPattern.compare(u"!video:"_s, Qt::CaseInsensitive) == 0 ||
+	    trimmedPattern.compare(u"!vid:"_s, Qt::CaseInsensitive) == 0)
     {
         regexPattern = buildExtRegex(videoExts, true);
     }
-    else if (trimmedPattern.compare(u"pic:"_s, Qt::CaseInsensitive) == 0)
+    else if (trimmedPattern.compare(u"pic:"_s, Qt::CaseInsensitive) == 0 ||
+	    trimmedPattern.compare(u"picture:"_s, Qt::CaseInsensitive) == 0  ||
+		trimmedPattern.compare(u"img:"_s, Qt::CaseInsensitive) == 0 ||
+		trimmedPattern.compare(u"image:"_s, Qt::CaseInsensitive) == 0)
     {
         regexPattern = buildExtRegex(picExts, false);
     }
-    else if (trimmedPattern.compare(u"!pic:"_s, Qt::CaseInsensitive) == 0)
+    else if (trimmedPattern.compare(u"!pic:"_s, Qt::CaseInsensitive) == 0 ||
+	    trimmedPattern.compare(u"!picture:"_s, Qt::CaseInsensitive) == 0  ||
+		trimmedPattern.compare(u"!img:"_s, Qt::CaseInsensitive) == 0 ||
+		trimmedPattern.compare(u"!image:"_s, Qt::CaseInsensitive) == 0)
     {
         regexPattern = buildExtRegex(picExts, true);
+    }
+    else if (trimmedPattern.compare(u"audio:"_s, Qt::CaseInsensitive) == 0 ||
+	    trimmedPattern.compare(u"aud:"_s, Qt::CaseInsensitive) == 0)
+    {
+        regexPattern = buildExtRegex(audioExts, false);
+    }
+    else if (trimmedPattern.compare(u"!audio:"_s, Qt::CaseInsensitive) == 0 ||
+	    trimmedPattern.compare(u"!aud:"_s, Qt::CaseInsensitive) == 0)
+    {
+        regexPattern = buildExtRegex(audioExts, true);
     }
     else if (trimmedPattern.startsWith(u"ext:"_s, Qt::CaseInsensitive))
     {
