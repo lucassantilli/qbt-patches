@@ -1316,7 +1316,7 @@ void TorrentImpl::updateState()
     {
         m_state = TorrentState::Error;
     }
-    else if (isPrivate() && !hasWorkingTracker())
+    else if (isRunning() && (isPrivate() && !hasWorkingTracker())
     {
         m_hasNoWorkingTrackerError = true;
         m_state = TorrentState::Error;
