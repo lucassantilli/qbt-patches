@@ -80,17 +80,29 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
             // Determine colors according to state requirements
             QColor badgeColor;
-            const QColor labelColor = option.palette.color(QPalette::Active, QPalette::Dark);
+            const QColor labelColor = option.palette.color(QPalette::Dark);
 
             switch (torrentState)
             {
             // 1. Cell background color (respecting AlternateBase)
-            case TorrentState::StalledDownloading:
+			case TorrentState::StalledDownloading:
             case TorrentState::StalledUploading:
                 {
-                    const bool isAlternate = (option.features & QStyleOptionViewItem::Alternate);
-                    const QPalette::ColorRole bgRole = isAlternate ? QPalette::AlternateBase : QPalette::Base;
-                    badgeColor = option.palette.color(QPalette::Active, bgRole);
+                    if (option.state & QStyle::State_Selected)
+                    {
+                        const QPalette::ColorGroup cg = (option.state & QStyle::State_Active)
+                            ? QPalette::Active : QPalette::Inactive;
+                        badgeColor = option.palette.color(cg, QPalette::Highlight);
+                    }
+                    else
+                    {
+                        // Alternate row state is derived from odd row numbers when alternating row colors are active
+                        const bool isAlternate = (index.row() % 2 != 0);
+                        const QPalette::ColorRole bgRole = isAlternate ? QPalette::AlternateBase : QPalette::Base;
+                        const QPalette::ColorGroup cg = (option.state & QStyle::State_Enabled)
+                            ? QPalette::Normal : QPalette::Disabled;
+                        badgeColor = option.palette.color(cg, bgRole);
+                    }
                 }
                 break;
 
@@ -149,3 +161,4 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         break;
     }
 }
+
