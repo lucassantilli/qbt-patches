@@ -128,30 +128,24 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             // 3. Apply styling rules based on state
             switch (torrentState)
             {
+			case TorrentState::StalledDownloading:
+			case TorrentState::StalledUploading:
+				break;
+				
             case TorrentState::StoppedDownloading:
             case TorrentState::StoppedUploading:
             case TorrentState::MissingFiles:
             case TorrentState::Error:
+			case TorrentState::Downloading:
+            case TorrentState::ForcedDownloading:
+            case TorrentState::Uploading:
+            case TorrentState::ForcedUploading:
+			default:
                 {
                     // Painted based on the status color, with a white label
                     const QColor bgColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Text);
                     painter->fillPath(path, bgColor);
                     painter->setPen(Qt::white);
-                }
-                break;
-
-            case TorrentState::Downloading:
-            case TorrentState::ForcedDownloading:
-            case TorrentState::Uploading:
-            case TorrentState::ForcedUploading:
-            default:
-                {
-                    // Palette.WindowText for background, Palette.Dark for the label
-                    const QColor bgColor = option.palette.color(QPalette::WindowText);
-                    const QColor labelColor = option.palette.color(QPalette::Dark);
-
-                    painter->fillPath(path, bgColor);
-                    painter->setPen(labelColor);
                 }
                 break;
             }
