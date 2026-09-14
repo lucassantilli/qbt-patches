@@ -110,16 +110,24 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             const QString statusText = index.data(Qt::DisplayRole).toString();
             const QColor statusColor = index.data(Qt::ForegroundRole).value<QColor>();
 
-            // 2. Calculate fixed badge geometry
-            const int horizontalPadding = 12;
-            const int textWidth = option.fontMetrics.horizontalAdvance(statusText);
-            const int badgeWidth = textWidth + horizontalPadding;
-            const int badgeHeight = option.rect.height() - 8;
+			// 2. Calculate clamped badge geometry
+			const int horizontalPadding = 12;
+			const int paddingLeft = 5;
+			const int paddingRight = 5;
 
-            const int paddingLeft = 5;
-            const int badgeX = option.rect.x() + paddingLeft;
-            const int badgeY = option.rect.y() + (option.rect.height() - badgeHeight) / 2;
-            const QRect badgeRect(badgeX, badgeY, badgeWidth, badgeHeight);
+			// Limit maximum badge width to available column width
+			const int maxBadgeWidth = option.rect.width() - (paddingLeft + paddingRight);
+			const int desiredBadgeWidth = option.fontMetrics.horizontalAdvance(statusText) + horizontalPadding;
+			const int badgeWidth = std::max(0, std::min(desiredBadgeWidth, maxBadgeWidth));
+
+			const int badgeHeight = option.rect.height() - 8;
+			const int badgeX = option.rect.x() + paddingLeft;
+			const int badgeY = option.rect.y() + (option.rect.height() - badgeHeight) / 2;
+			const QRect badgeRect(badgeX, badgeY, badgeWidth, badgeHeight);
+
+			// Calculate available text space inside the clamped badge
+			const int maxTextWidth = std::max(0, badgeWidth - horizontalPadding);
+			const QString elidedText = option.fontMetrics.elidedText(statusText, Qt::ElideRight, maxTextWidth);
 
             const int radius = 4;
             QPainterPath path;
@@ -148,7 +156,7 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
                 break;
             }
 
-            painter->drawText(badgeRect, Qt::AlignCenter, statusText);
+            painter->drawText(badgeRect, Qt::AlignCenter, elidedText);
 
             painter->restore();
         }
