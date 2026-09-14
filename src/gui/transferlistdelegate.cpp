@@ -44,15 +44,18 @@ TransferListDelegate::TransferListDelegate(QObject *parent)
 
 QSize TransferListDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
-    // Reimplementing sizeHint() because the 'name' column contains text+icon.
-    // When that WHOLE column goes out of view(eg user scrolls horizontally)
-    // the rows shrink if the text's height is smaller than the icon's height.
-    // This happens because icon from the 'name' column is no longer drawn.
-
     if (m_nameColHeight == -1)
     {
         const QModelIndex nameColumn = index.sibling(index.row(), TransferListModel::TR_NAME);
         m_nameColHeight = QStyledItemDelegate::sizeHint(option, nameColumn).height();
+    }
+
+    QModelIndex targetIndex = index;
+    QString sanitizedText;
+
+    if (index.column() == TransferListModel::TR_STATUS)
+    {
+        sanitizedText = index.data(Qt::DisplayRole).toString().simplified();
     }
 
     QSize size = QStyledItemDelegate::sizeHint(option, index);
@@ -95,70 +98,60 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         }
         break;
 
-    case TransferListModel::TR_STATUS:
+case TransferListModel::TR_STATUS:
+    {
+        using BitTorrent::TorrentState;
+        QStyledItemDelegate::paint(painter, option, index);
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
+
+        const auto torrentState = index.data(TransferListModel::UnderlyingDataRole).value<TorrentState>();
+        const QString statusText = index.data(Qt::DisplayRole).toString().simplified();
+        const QColor statusColor = index.data(Qt::ForegroundRole).value<QColor>();
+
+        const int horizontalPadding = 12;
+        const int paddingLeft = 5;
+        const int paddingRight = 5;
+
+        const int maxBadgeWidth = option.rect.width() - (paddingLeft + paddingRight);
+        const int desiredBadgeWidth = option.fontMetrics.horizontalAdvance(statusText) + horizontalPadding;
+        const int badgeWidth = std::max(0, std::min(desiredBadgeWidth, maxBadgeWidth));
+
+        const int badgeHeight = option.rect.height() - 8;
+        const int badgeX = option.rect.x() + paddingLeft;
+        const int badgeY = option.rect.y() + (option.rect.height() - badgeHeight) / 2;
+        const QRect badgeRect(badgeX, badgeY, badgeWidth, badgeHeight);
+
+        const int maxTextWidth = std::max(0, badgeWidth - horizontalPadding);
+        const QString elidedText = option.fontMetrics.elidedText(statusText, Qt::ElideRight, maxTextWidth);
+
+        const int radius = 4;
+        QPainterPath path;
+        path.addRoundedRect(badgeRect, radius, radius);
+
+        switch (torrentState)
         {
-            using BitTorrent::TorrentState;
-
-            // 1. Let the base delegate paint the standard background (handles selection, hover, etc.)
-            QStyledItemDelegate::paint(painter, option, index);
-
-            painter->save();
-            painter->setRenderHint(QPainter::Antialiasing);
-
-            // Fetch state, text, and status color
-            const auto torrentState = index.data(TransferListModel::UnderlyingDataRole).value<TorrentState>();
-            const QString statusText = index.data(Qt::DisplayRole).toString();
-            const QColor statusColor = index.data(Qt::ForegroundRole).value<QColor>();
-
-			// 2. Calculate clamped badge geometry
-			const int horizontalPadding = 12;
-			const int paddingLeft = 5;
-			const int paddingRight = 5;
-
-			// Limit maximum badge width to available column width
-			const int maxBadgeWidth = option.rect.width() - (paddingLeft + paddingRight);
-			const int desiredBadgeWidth = option.fontMetrics.horizontalAdvance(statusText) + horizontalPadding;
-			const int badgeWidth = std::max(0, std::min(desiredBadgeWidth, maxBadgeWidth));
-
-			const int badgeHeight = option.rect.height() - 8;
-			const int badgeX = option.rect.x() + paddingLeft;
-			const int badgeY = option.rect.y() + (option.rect.height() - badgeHeight) / 2;
-			const QRect badgeRect(badgeX, badgeY, badgeWidth, badgeHeight);
-
-			// Calculate available text space inside the clamped badge
-			const int maxTextWidth = std::max(0, badgeWidth - horizontalPadding);
-			const QString elidedText = option.fontMetrics.elidedText(statusText, Qt::ElideRight, maxTextWidth);
-
-            const int radius = 4;
-            QPainterPath path;
-            path.addRoundedRect(badgeRect, radius, radius);
-
-            // 3. Apply styling rules based on state
-            switch (torrentState)
+        case TorrentState::StalledUploading:
             {
-
-			case TorrentState::StalledUploading:
-                {
-                    const QColor bgColor = option.palette.color(QPalette::WindowText);
-                    painter->fillPath(path, bgColor);
-                    painter->setPen(QColor(10, 10, 10));
-                }
-                break;
-				
-			default:
-                {
-                    const QColor bgColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Text);
-                    painter->fillPath(path, bgColor);
-                    painter->setPen(Qt::white);
-                }
-                break;
+                const QColor bgColor = option.palette.color(QPalette::WindowText);
+                painter->fillPath(path, bgColor);
+                painter->setPen(QColor(10, 10, 10));
             }
-
-            painter->drawText(badgeRect, Qt::AlignCenter, elidedText);
-
-            painter->restore();
+            break;
+            
+        default:
+            {
+                const QColor bgColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Text);
+                painter->fillPath(path, bgColor);
+                painter->setPen(Qt::white);
+            }
+            break;
         }
-        break;
+
+        painter->drawText(badgeRect, Qt::AlignCenter | Qt::TextSingleLine, elidedText);
+        painter->restore();
+    }
+    break;
 
     default:
         QStyledItemDelegate::paint(painter, option, index);
