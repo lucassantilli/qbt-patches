@@ -140,9 +140,8 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 			case TorrentState::StalledUploading:
                 {
                     const QColor bgColor = option.palette.color(QPalette::WindowText);
-                    const QColor labelColor = option.palette.color(QPalette::Dark);
                     painter->fillPath(path, bgColor);
-                    painter->setPen(labelColor);
+                    painter->setPen(QColor(10, 10, 10));
                 }
                 break;
 				
