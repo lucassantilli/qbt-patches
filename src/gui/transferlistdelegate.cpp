@@ -64,75 +64,53 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 {
     switch (index.column())
     {
+    case TransferListModel::TR_PROGRESS:
+        {
+            using namespace BitTorrent;
+
+            const auto isEnableState = [](const TorrentState state) -> bool
+            {
+                switch (state)
+                {
+                case TorrentState::Error:
+                case TorrentState::StoppedDownloading:
+                case TorrentState::Unknown:
+                    return false;
+                default:
+                    return true;
+                }
+            };
+
+            const int progress = static_cast<int>(index.data(TransferListModel::UnderlyingDataRole).toReal());
+
+            const QModelIndex statusIndex = index.siblingAtColumn(TransferListModel::TR_STATUS);
+            const auto torrentState = statusIndex.data(TransferListModel::UnderlyingDataRole).value<TorrentState>();
+
+            QStyleOptionViewItem customOption {option};
+            customOption.state.setFlag(QStyle::State_Enabled, isEnableState(torrentState));
+
+            const QColor color = Preferences::instance()->getProgressBarFollowsTextColor() ? index.data(Qt::ForegroundRole).value<QColor>() : QColor();
+
+            m_progressBarPainter.paint(painter, customOption, index.data().toString(), progress, color);
+        }
+        break;
+
     case TransferListModel::TR_STATUS:
         {
             using BitTorrent::TorrentState;
 
-            // Draw base cell selection highlight and default background
+            // 1. Let the base delegate paint the standard background (handles selection, hover, etc.)
             QStyledItemDelegate::paint(painter, option, index);
-
-            const auto torrentState = index.data(TransferListModel::UnderlyingDataRole).value<TorrentState>();
-            const QString statusText = index.data(Qt::DisplayRole).toString();
-            const QColor statusColor = index.data(Qt::ForegroundRole).value<QColor>();
 
             painter->save();
             painter->setRenderHint(QPainter::Antialiasing);
 
-            // Determine colors according to state requirements
-            QColor badgeColor;
-            const QColor labelColor = option.palette.color(QPalette::Dark);
+            // Fetch state, text, and status color
+            const auto torrentState = index.data(TransferListModel::UnderlyingDataRole).value<TorrentState>();
+            const QString statusText = index.data(Qt::DisplayRole).toString();
+            const QColor statusColor = index.data(Qt::ForegroundRole).value<QColor>();
 
-            switch (torrentState)
-            {
-            // 1. Cell background color (respecting AlternateBase)
-			case TorrentState::StalledDownloading:
-            case TorrentState::StalledUploading:
-                {
-                    if (option.state & QStyle::State_Selected)
-                    {
-                        const QPalette::ColorGroup cg = (option.state & QStyle::State_Active)
-                            ? QPalette::Active : QPalette::Inactive;
-                        badgeColor = option.palette.color(cg, QPalette::Highlight);
-                    }
-                    else
-                    {
-                        // Alternate row state is derived from odd row numbers when alternating row colors are active
-                        const bool isAlternate = (index.row() % 2 != 0);
-                        const QPalette::ColorRole bgRole = isAlternate ? QPalette::AlternateBase : QPalette::Base;
-                        const QPalette::ColorGroup cg = (option.state & QStyle::State_Enabled)
-                            ? QPalette::Normal : QPalette::Disabled;
-                        badgeColor = option.palette.color(cg, bgRole);
-                    }
-                }
-                break;
-
-            // 2. QPalette::WindowText
-            case TorrentState::Downloading:
-            case TorrentState::ForcedDownloading:
-            case TorrentState::Uploading:
-            case TorrentState::ForcedUploading:
-                badgeColor = option.palette.color(QPalette::Active, QPalette::WindowText);
-                break;
-
-            // 3. Theme statusColor
-            case TorrentState::Moving:
-            case TorrentState::MissingFiles:
-            case TorrentState::Error:
-            case TorrentState::StoppedDownloading:
-            case TorrentState::StoppedUploading:
-            case TorrentState::DownloadingMetadata:
-            case TorrentState::ForcedDownloadingMetadata:
-            case TorrentState::QueuedDownloading:
-            case TorrentState::QueuedUploading:
-            case TorrentState::CheckingDownloading:
-            case TorrentState::CheckingUploading:
-            case TorrentState::CheckingResumeData:
-            default:
-                badgeColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Active, QPalette::Text);
-                break;
-            }
-
-            // --- Badge Rendering Logic ---
+            // 2. Calculate fixed badge geometry
             const int horizontalPadding = 12;
             const int textWidth = option.fontMetrics.horizontalAdvance(statusText);
             const int badgeWidth = textWidth + horizontalPadding;
@@ -147,9 +125,37 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             QPainterPath path;
             path.addRoundedRect(badgeRect, radius, radius);
 
-            // Paint badge background and text label
-            painter->fillPath(path, badgeColor);
-            painter->setPen(labelColor);
+            // 3. Apply styling rules based on state
+            switch (torrentState)
+            {
+            case TorrentState::StoppedDownloading:
+            case TorrentState::StoppedUploading:
+            case TorrentState::MissingFiles:
+            case TorrentState::Error:
+                {
+                    // Painted based on the status color, with a white label
+                    const QColor bgColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Text);
+                    painter->fillPath(path, bgColor);
+                    painter->setPen(Qt::white);
+                }
+                break;
+
+            case TorrentState::Downloading:
+            case TorrentState::ForcedDownloading:
+            case TorrentState::Uploading:
+            case TorrentState::ForcedUploading:
+            default:
+                {
+                    // Palette.WindowText for background, Palette.Dark for the label
+                    const QColor bgColor = option.palette.color(QPalette::WindowText);
+                    const QColor labelColor = option.palette.color(QPalette::Dark);
+
+                    painter->fillPath(path, bgColor);
+                    painter->setPen(labelColor);
+                }
+                break;
+            }
+
             painter->drawText(badgeRect, Qt::AlignCenter, statusText);
 
             painter->restore();
@@ -161,4 +167,3 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         break;
     }
 }
-
