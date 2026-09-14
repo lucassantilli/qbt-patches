@@ -156,9 +156,5 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             painter->restore();
         }
         break;
-
-    default:
-        QStyledItemDelegate::paint(painter, option, index);
-        break;
     }
 }
