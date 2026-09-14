@@ -99,8 +99,9 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         {
             using BitTorrent::TorrentState;
 
-            // 1. Let the base delegate paint the standard background (handles selection, hover, etc.)
-            QStyledItemDelegate::paint(painter, option, index);
+            QStyleOptionViewItem opt = option;
+			opt.text.clear();
+			QStyledItemDelegate::paint(painter, opt, index);
 
             painter->save();
             painter->setRenderHint(QPainter::Antialiasing);
