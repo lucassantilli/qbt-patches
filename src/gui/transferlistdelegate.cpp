@@ -99,9 +99,8 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
         {
             using BitTorrent::TorrentState;
 
-            QStyleOptionViewItem opt = option;
-			opt.text.clear();
-			QStyledItemDelegate::paint(painter, opt, index);
+            // 1. Let the base delegate paint the standard background (handles selection, hover, etc.)
+            QStyledItemDelegate::paint(painter, option, index);
 
             painter->save();
             painter->setRenderHint(QPainter::Antialiasing);
@@ -131,16 +130,14 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             {
 			case TorrentState::StalledDownloading:
 			case TorrentState::StalledUploading:
-				break;
+                {
+                    const QColor bgColor = option.palette.color(QPalette::WindowText);
+                    const QColor labelColor = option.palette.color(QPalette::Dark);
+                    painter->fillPath(path, bgColor);
+                    painter->setPen(labelColor);
+                }
+                break;
 				
-            case TorrentState::StoppedDownloading:
-            case TorrentState::StoppedUploading:
-            case TorrentState::MissingFiles:
-            case TorrentState::Error:
-			case TorrentState::Downloading:
-            case TorrentState::ForcedDownloading:
-            case TorrentState::Uploading:
-            case TorrentState::ForcedUploading:
 			default:
                 {
                     // Painted based on the status color, with a white label
@@ -155,6 +152,10 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
             painter->restore();
         }
+        break;
+
+    default:
+        QStyledItemDelegate::paint(painter, option, index);
         break;
     }
 }
