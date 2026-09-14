@@ -132,13 +132,27 @@ case TransferListModel::TR_STATUS:
         switch (torrentState)
         {
         case TorrentState::StalledUploading:
+			{
+				const bool isEvenRow = (index.row() % 2 == 0);
+				const QColor bgColor = isEvenRow 
+					? QColor(10, 10, 10)  // Color for even rows
+					: QColor(14, 14, 14); // Color for odd rows
+
+				const QColor textColor = QColor(229, 229, 229);
+
+				painter->fillPath(path, bgColor);
+				painter->setPen(textColor);
+			}
+			break;
+
+        case TorrentState::Uploading:
+		case TorrentState::ForcedUploading:
             {
-                const QColor bgColor = option.palette.color(QPalette::WindowText);
-                painter->fillPath(path, bgColor);
+                painter->fillPath(path, QColor(229, 229, 229));
                 painter->setPen(QColor(10, 10, 10));
             }
             break;
-            
+
         default:
             {
                 const QColor bgColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Text);
