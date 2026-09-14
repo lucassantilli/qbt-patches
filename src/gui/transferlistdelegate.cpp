@@ -136,10 +136,8 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
             // 3. Apply styling rules based on state
             switch (torrentState)
             {
-			case TorrentState::StalledDownloading:
+
 			case TorrentState::StalledUploading:
-			case TorrentState::Downloading:
-			case TorrentState::ForcedDownloading:
                 {
                     const QColor bgColor = option.palette.color(QPalette::WindowText);
                     painter->fillPath(path, bgColor);
@@ -149,7 +147,6 @@ void TransferListDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 				
 			default:
                 {
-                    // Painted based on the status color, with a white label
                     const QColor bgColor = statusColor.isValid() ? statusColor : option.palette.color(QPalette::Text);
                     painter->fillPath(path, bgColor);
                     painter->setPen(Qt::white);
