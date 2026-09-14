@@ -1388,11 +1388,23 @@ QString TorrentImpl::error() const
     {
         for (const TrackerEntryStatus &tracker : m_trackerEntryStatuses)
         {
-            if (!tracker.message.isEmpty())
-                return tracker.message;
+            const QString msg = tracker.message.trimmed();
+            if (msg.isEmpty())
+                continue;
+
+            if (msg.startsWith(QLatin1String("unregistered"), Qt::CaseInsensitive))
+                return tr("Unregistered Torrent");
+
+            if (msg.startsWith(QLatin1String("removed"), Qt::CaseInsensitive))
+                return tr("Taken Down");
+
+            if (msg.startsWith(QLatin1String("bad ratio"), Qt::CaseInsensitive))
+                return tr("Bad Ratio");
+
+            return tr("Tracker Error");
         }
 
-        return tr("No working trackers");
+        return tr("No working tracker");
     }
 	
     if (m_nativeStatus.errc)
