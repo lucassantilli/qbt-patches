@@ -1316,10 +1316,11 @@ void TorrentImpl::updateState()
     {
         m_state = TorrentState::Error;
     }
+
 	else if (isRunning() && isPrivate() && !isQueued() && !isChecking() && !isMoving())
 	{
 		bool hasCompletedAnnounce = false;
-		for (const auto &entry : handle().trackers())
+		for (const auto &entry : nativeHandle().trackers())
 		{
 			for (const auto &ep : entry.endpoints)
 			{
@@ -1347,7 +1348,7 @@ void TorrentImpl::updateState()
 				m_hasNoWorkingTrackerError = false;
 			}
 		}
-	}	
+	}
     else if (!hasMetadata())
     {
         if (isStopped())
