@@ -1320,22 +1320,17 @@ void TorrentImpl::updateState()
 	else if (isRunning() && isPrivate() && !isQueued() && !isChecking() && !isMoving())
 	{
 		bool hasCompletedAnnounce = false;
-		for (const auto &entry : nativeHandle().trackers())
+
+		for (const TrackerEntry &entry : trackers())
 		{
-			for (const auto &ep : entry.endpoints)
-			{
-				if (ep.fails > 0 || ep.last_error)
-				{
-					hasCompletedAnnounce = true;
-					break;
-				}
-			}
-			if (entry.is_working())
+			if (entry.status() != TrackerEntry::Status::NotContacted &&
+				entry.status() != TrackerEntry::Status::Updating)
 			{
 				hasCompletedAnnounce = true;
 				break;
 			}
 		}
+
 		if (hasCompletedAnnounce)
 		{
 			if (!hasWorkingTracker())
@@ -1349,6 +1344,7 @@ void TorrentImpl::updateState()
 			}
 		}
 	}
+
     else if (!hasMetadata())
     {
         if (isStopped())
